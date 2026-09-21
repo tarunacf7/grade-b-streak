@@ -104,10 +104,32 @@
     background: repeating-radial-gradient(circle at 0 100%, transparent 0 22px, var(--pattern) 22px 23px), repeating-radial-gradient(circle at 100% 0, transparent 0 22px, var(--pattern) 22px 23px);
     mask-image: linear-gradient(90deg, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.9)); -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.9)); }
   .hero > * { position: relative; }
-  .streak-num { font-family: var(--display); font-weight: 600; font-size: 72px; line-height: 0.95; letter-spacing: -0.01em; display: flex; align-items: flex-end; gap: 10px; }
-  .streak-num svg { width: 34px; height: 44px; margin-bottom: 6px; }
+  .streak-num { display: flex; align-items: center; gap: 12px; }
+  .streak-num .n { font-family: var(--display); font-weight: 600; font-size: 72px; line-height: 0.95; letter-spacing: -0.01em; color: var(--ink-3); }
+  .streak-num.on .n { color: var(--accent); }
+  .flame-big { width: 62px; height: 80px; display: block; }
   .flame-off { color: var(--ink-3); } .flame-on { color: var(--accent); }
-  .streak-label { font-size: 14px; color: var(--ink-2); margin-top: 6px; }
+  .streak-label { font-size: 14px; color: var(--ink-2); margin-top: 6px; font-weight: 500; }
+  .streak-label.on { color: var(--accent); font-weight: 600; }
+  .streak-label.risk { color: var(--ink-2); }
+  .week { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding-top: 14px; border-top: 1px solid var(--line-2); position: relative; }
+  .week::before { content: ""; position: absolute; left: calc(100% / 14); right: calc(100% / 14); top: 53px; height: 2px; background: var(--line-2); }
+  .wd { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; padding: 0; }
+  .wd .l { font-size: 11px; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 500; line-height: 16px; }
+  .wd .l.t { color: var(--ink); }
+  .wd .c { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; color: transparent; position: relative; z-index: 1; transition: transform 0.15s; }
+  .wd:hover .c { transform: scale(1.06); }
+  .wd .c svg { width: 18px; height: 18px; }
+  .wd .c.full { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .wd .c.part { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+  .wd .c.today { border-color: var(--accent); border-style: dashed; }
+  .wd .c.future { border-color: var(--line-2); background: transparent; }
+  .wd .c.miss { border-color: var(--line); background: var(--surface-2); }
+  .wd .h { font-size: 10.5px; color: var(--ink-3); font-family: var(--mono); line-height: 14px; min-height: 14px; }
+  .day-edit-hero { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--line-2); }
+  .day-edit .hours-head, .day-edit-hero .hours-head { align-items: center; }
+  .day-edit .hours-head > span:last-child, .day-edit-hero .hours-head > span:last-child { display: flex; gap: 6px; }
+  @media (prefers-reduced-motion: reduce) { .wd .c { transition: none; } }
   .streak-stats { margin-top: 12px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
   .streak-stats b { color: var(--ink); font-weight: 600; }
   .ring { width: 108px; height: 108px; position: relative; }
@@ -293,7 +315,8 @@
     .block-head h2 { white-space: nowrap; }
     .block-head .meta { font-size: 12px; }
     .hero { padding: 18px 16px 16px; }
-    .streak-num { font-size: 64px; }
+    .streak-num .n { font-size: 60px; }
+    .flame-big { width: 52px; height: 68px; }
     .ring { width: 96px; height: 96px; }
     .hb { min-width: 48px; height: 44px; }
     .tiles { grid-template-columns: repeat(3, 1fr); }
@@ -674,6 +697,28 @@ function topicRow(t, opts = {}) {
     '<div class="body"><div class="name' + (x.s === 2 ? " s2" : "") + '">' + esc(tname(t)) + "</div>" + (tags ? '<div class="crumb">' + tags + "</div>" : "") + "</div>" +
     '<div class="acts">' + acts + custom + "</div></div>";
 }
+function flameBig(on) {
+  return '<span class="' + (on ? "flame-on" : "flame-off") + '"><svg class="flame-big" viewBox="0 0 64 84" aria-hidden="true">' + (on
+    ? '<defs><linearGradient id="fgOuter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6B85C"/><stop offset="1" stop-color="#D9822B"/></linearGradient><linearGradient id="fgInner" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF1CC"/><stop offset="1" stop-color="#F6B85C"/></linearGradient></defs>' +
+      '<path fill="url(#fgOuter)" d="M32 2c4 12 17 18 17 36 0 13-9 24-17 24S15 51 15 38c0-6 2-11 5-15 2 6 5 9 8 9-1-12-3-21 4-30z"/>' +
+      '<path fill="url(#fgInner)" d="M32 40c2 6 8 9 8 16 0 6-4 10-8 10s-8-4-8-10c0-3 1-6 3-8 1 3 2 4 4 4-1-5-1-9 1-12z"/>'
+    : '<path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" d="M32 3c4 12 17 18 17 36 0 13-9 24-17 24S15 52 15 39c0-6 2-11 5-15 2 6 5 9 8 9-1-12-3-21 4-30z"/>' +
+      '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M32 41c2 6 8 9 8 16 0 6-4 10-8 10s-8-4-8-10c0-3 1-6 3-8 1 3 2 4 4 4-1-5-1-9 1-12z"/>') + "</svg></span>";
+}
+function weekStrip() {
+  const today = ymd(), mon = thisMonday(today), goal = S.settings.goal;
+  let html = '<div class="week" role="group" aria-label="This week">';
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(mon, i), h = hoursOn(d), isT = d === today, fut = d > today;
+    const cls = fut ? "future" : h >= goal ? "full" : h >= 1 ? "part" : isT ? "today" : "miss";
+    html += '<button class="wd" data-act="day:' + d + '" title="' + fmtDate(d, "wd") + " · " + h + ' h · tap to edit"><span class="l' + (isT ? " t" : "") + '">' + DOW[i][0] + '</span><span class="c ' + cls + '">' + (h >= 1 ? ICON_CHECK : "") + '</span><span class="h">' + (h ? h + "h" : "") + "</span></button>";
+  }
+  return html + "</div>";
+}
+function dayEditor(cls) {
+  const d = UI.editDay; if (!d || d > ymd()) return "";
+  return '<div class="' + cls + '"><div class="hours-head"><span class="eyebrow">' + fmtDate(d, "wd") + " · " + hoursOn(d) + ' h</span><span><button class="btn quiet sm" data-act="hours:' + d + ':0" title="Set this day to zero hours">Clear day</button><button class="btn quiet sm" data-act="closeday">Close</button></span></div><div class="hours">' + hourBlocks(d) + "</div></div>";
+}
 function ringSvg(h, goal, safe) {
   const r = 46, c = 2 * Math.PI * r, frac = Math.min(1, goal ? h / goal : 0);
   return '<div class="ring' + (safe ? " safe" : "") + '"><svg viewBox="0 0 108 108"><circle class="track" cx="54" cy="54" r="' + r + '"/>' +
@@ -702,9 +747,7 @@ function heatmap(weeks = 16) {
   }
   return '<div class="heat-wrap"><div class="heat-months">' + months + '</div><div class="heat">' + cells + "</div>" +
     '<div class="heat-legend"><span><i></i>No study</span><span><i class="l1"></i>Under half</span><span><i class="l2"></i>Most of goal</span><span><i class="l3"></i>Goal met</span></div>' +
-    (UI.editDay && UI.editDay <= today
-      ? '<div class="day-edit"><div class="hours-head"><span class="eyebrow">' + fmtDate(UI.editDay, "wd") + " · " + hoursOn(UI.editDay) + ' h</span><button class="btn quiet sm" data-act="closeday">Close</button></div><div class="hours">' + hourBlocks(UI.editDay) + "</div></div>"
-      : '<div class="heat-hint">Tap any day to log or fix its hours.</div>') + "</div>";
+    (UI.editDay && UI.editDay <= today ? dayEditor("day-edit") : '<div class="heat-hint">Tap any day to log or fix its hours.</div>') + "</div>";
 }
 
 /* ---------- Today ---------- */
@@ -730,12 +773,14 @@ function renderToday() {
   else if (s.studiedToday) { status = s.todayH + " h in. Streak safe. " + (s.goal - s.todayH) + " more " + (s.goal - s.todayH === 1 ? "hour" : "hours") + " hits today's goal."; cls = "safe"; }
   else if (s.cur > 0) { status = "Nothing logged yet. One hour today keeps your " + s.cur + "-day streak alive."; cls = ""; }
   else { status = "Log your first hour today to start the streak."; cls = "cold"; }
-  const flame = s.cur > 0 ? (s.studiedToday ? '<span class="flame-on">' + ICON_FLAME + "</span>" : '<span class="flame-off">' + ICON_FLAME_OUT + "</span>") : '<span class="flame-off">' + ICON_FLAME_OUT + "</span>";
+  const lit = s.cur > 0 && s.studiedToday;
+  const label = lit ? "day streak" + (s.goalToday ? " · goal met" : "") : s.cur > 0 ? "day streak · at risk" : "day streak";
 
   let html = '<section class="block" style="margin-top:8px"><div class="hero"><div>' +
-    '<div class="streak-num"><span class="num">' + s.cur + "</span>" + flame + '</div><div class="streak-label">day streak</div>' +
+    '<div class="streak-num' + (lit ? " on" : "") + '">' + flameBig(lit) + '<span class="n num">' + s.cur + '</span></div><div class="streak-label' + (lit ? " on" : s.cur > 0 ? " risk" : "") + '">' + label + "</div>" +
     '<div class="streak-stats"><span>Best <b class="num">' + s.longest + '</b></span><span>Goal days <b class="num">' + s.goalDays + '</b></span><span>Total <b class="num">' + s.totalHours + " h</b></span></div></div>" +
     ringSvg(s.todayH, s.goal, s.goalToday) +
+    weekStrip() + dayEditor("day-edit-hero") +
     '<div class="hours-wrap"><div class="hours-head"><span class="eyebrow">Hours today</span><span>Tap each hour as you finish it</span></div><div class="hours">' + hourBlocks() + "</div></div>" +
     '<div class="hero-status ' + cls + '"><span class="dot"></span><span>' + status + "</span></div></div>";
 
@@ -896,7 +941,7 @@ function renderSettings() {
     '<div class="set"><div class="k">Plan start (a Monday)</div><div class="d">Week 1 begins here. Set to the week of 16 Sept 2026.</div><div class="ctl"><input type="date" id="planStart" value="' + esc(S.settings.planStart) + '" aria-label="Plan start date"></div></div>' +
     '<div class="set"><div class="k">Exam date' + (S.settings.examAssumed ? " · assumed" : "") + '</div><div class="d">' + (S.settings.examAssumed ? "Nine months from 16 Sept 2026 as a working assumption. Update it when RBI announces the date." : "Sets the countdown and names the current-affairs months.") + '</div><div class="ctl"><input type="date" id="examDate" value="' + esc(S.settings.examDate) + '" aria-label="Exam date"></div></div>' +
     '<div class="set full"><div class="k">Backfill earlier days</div><div class="d">Studied before you set this up? Log hours for a run of past days in one go. Each day in the range gets at least this many hours.</div>' +
-    '<form class="add-form" id="backfillForm" style="padding:8px 0 0"><input type="date" name="from" value="' + esc(S.settings.planStart) + '" max="' + ymd() + '" aria-label="From date"><input type="date" name="to" value="' + addDays(ymd(), -1) + '" max="' + ymd() + '" aria-label="To date"><input type="number" name="h" min="1" max="24" value="' + S.settings.goal + '" class="hin" aria-label="Hours per day"><button class="btn primary sm" type="submit">Apply</button></form></div>' +
+    '<form class="add-form" id="backfillForm" style="padding:8px 0 0"><input type="date" name="from" value="' + addDays(ymd(), -1) + '" min="' + esc(S.settings.planStart) + '" max="' + ymd() + '" aria-label="From date"><input type="date" name="to" value="' + addDays(ymd(), -1) + '" max="' + ymd() + '" aria-label="To date"><input type="number" name="h" min="1" max="24" value="' + S.settings.goal + '" class="hin" aria-label="Hours per day"><button class="btn primary sm" type="submit">Apply</button></form></div>' +
     '<div class="set"><div class="k">Daily hours goal</div><div class="d">Hour blocks shown on Today. Any logged hour keeps the streak; reaching the goal makes it a goal day.</div><div class="ctl"><div class="stepper"><button data-act="goal:-1" aria-label="Lower goal">−</button><b class="num">' + S.settings.goal + ' h</b><button data-act="goal:1" aria-label="Raise goal">+</button></div></div></div>' +
     "</div></section>";
   html += '<section class="block"><div class="block-head"><h2>How it works</h2></div><div class="panel about">' +
