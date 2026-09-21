@@ -101,12 +101,15 @@
   .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none;
     background: repeating-radial-gradient(circle at 0 100%, transparent 0 22px, var(--pattern) 22px 23px), repeating-radial-gradient(circle at 100% 0, transparent 0 22px, var(--pattern) 22px 23px);
     mask-image: linear-gradient(90deg, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.9)); -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.9)); }
+  .hero { --accent: #FF9600; --accent-soft: rgba(255, 150, 0, 0.16); --accent-ink: #B86B00; --bee: #FFC800; --bee-soft: rgba(255, 200, 0, 0.22); --flame-off: #AFAFAF; --flame-off-2: #E5E5E5; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero { --flame-off: #4B5568; --flame-off-2: #6B7488; } }
+  :root[data-theme="dark"] .hero { --flame-off: #4B5568; --flame-off-2: #6B7488; }
   .hero > * { position: relative; }
   .streak-num { display: flex; align-items: center; gap: 12px; }
   .streak-num .n { font-family: var(--display); font-weight: 600; font-size: 72px; line-height: 0.95; letter-spacing: -0.01em; color: var(--ink-3); }
   .streak-num.on .n { color: var(--accent); }
   .flame-big { width: 62px; height: 80px; display: block; }
-  .flame-off { color: var(--ink-3); } .flame-on { color: var(--accent); }
+  .flame-off { color: var(--flame-off); } .flame-on { color: var(--accent); }
   .streak-label { font-size: 14px; color: var(--ink-2); margin-top: 6px; font-weight: 500; }
   .streak-label.on { color: var(--accent); font-weight: 600; }
   .streak-stats { margin-top: 12px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
@@ -129,7 +132,7 @@
   .wd:hover .c { transform: scale(1.06); }
   .wd .c svg { width: 18px; height: 18px; }
   .wd .c.full { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .wd .c.part { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+  .wd .c.part { background: var(--bee); border-color: var(--bee); color: #7A5A00; }
   .wd .c.today { border-color: var(--accent); border-style: dashed; }
   .wd .c.future { border-color: var(--line-2); background: transparent; }
   .wd .c.miss { border-color: var(--line); background: var(--surface-2); }
@@ -143,7 +146,7 @@
   .hb { flex: 1 1 0; min-width: 52px; height: 46px; border-radius: 10px; border: 1.5px solid var(--line); display: grid; place-items: center; font-family: var(--mono); font-size: 12.5px; color: var(--ink-3); background: var(--surface); transition: background 0.15s, border-color 0.15s, color 0.15s; }
   .hb:hover { border-color: var(--accent); color: var(--ink); }
   .hb.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .hb.extra.on { background: var(--good); border-color: var(--good); }
+  .hb.extra.on { background: var(--bee); border-color: var(--bee); color: #7A5A00; }
   .hb.add { border-style: dashed; flex: 0 0 auto; padding: 0 12px; }
   .hero-status { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--line-2); font-size: 13.5px; color: var(--ink-2); display: flex; gap: 8px; align-items: center; }
   .hero-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
@@ -636,11 +639,11 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
 function flameBig(on) {
   return '<span class="' + (on ? "flame-on" : "flame-off") + '"><svg class="flame-big" viewBox="0 0 64 84" aria-hidden="true">' + (on
-    ? '<defs><linearGradient id="fgOuter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6B85C"/><stop offset="1" stop-color="#D9822B"/></linearGradient><linearGradient id="fgInner" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF1CC"/><stop offset="1" stop-color="#F6B85C"/></linearGradient></defs>' +
+    ? '<defs><linearGradient id="fgOuter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB020"/><stop offset="1" stop-color="#FF9600"/></linearGradient><linearGradient id="fgInner" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE38A"/><stop offset="1" stop-color="#FFC800"/></linearGradient></defs>' +
       '<path fill="url(#fgOuter)" d="M32 2c4 12 17 18 17 36 0 13-9 24-17 24S15 51 15 38c0-6 2-11 5-15 2 6 5 9 8 9-1-12-3-21 4-30z"/>' +
       '<path fill="url(#fgInner)" d="M32 40c2 6 8 9 8 16 0 6-4 10-8 10s-8-4-8-10c0-3 1-6 3-8 1 3 2 4 4 4-1-5-1-9 1-12z"/>'
-    : '<path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" d="M32 3c4 12 17 18 17 36 0 13-9 24-17 24S15 52 15 39c0-6 2-11 5-15 2 6 5 9 8 9-1-12-3-21 4-30z"/>' +
-      '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M32 41c2 6 8 9 8 16 0 6-4 10-8 10s-8-4-8-10c0-3 1-6 3-8 1 3 2 4 4 4-1-5-1-9 1-12z"/>') + "</svg></span>";
+    : '<path fill="var(--flame-off)" d="M32 2c4 12 17 18 17 36 0 13-9 24-17 24S15 51 15 38c0-6 2-11 5-15 2 6 5 9 8 9-1-12-3-21 4-30z"/>' +
+      '<path fill="var(--flame-off-2)" d="M32 40c2 6 8 9 8 16 0 6-4 10-8 10s-8-4-8-10c0-3 1-6 3-8 1 3 2 4 4 4-1-5-1-9 1-12z"/>') + "</svg></span>";
 }
 function weekStrip() {
   const today = ymd(), mon = thisMonday(today), goal = S.settings.goal;
