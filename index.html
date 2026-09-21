@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@800;900&display=swap">
 <style>
   :root {
     --bg: #EDEFF2; --surface: #FFFFFF; --surface-2: #F5F6F9;
@@ -108,7 +108,7 @@
   .streak-num { display: flex; align-items: center; gap: 12px; }
   .streak-num .n { font-family: var(--display); font-weight: 600; font-size: 72px; line-height: 0.95; letter-spacing: -0.01em; color: var(--ink-3); }
   .streak-num.on .n { color: var(--accent); }
-  .flame-big { width: 62px; height: 80px; display: block; }
+  .flame-big { width: 60px; height: 72px; display: block; }
   .flame-off { color: var(--flame-off); } .flame-on { color: var(--accent); }
   .streak-label { font-size: 14px; color: var(--ink-2); margin-top: 6px; font-weight: 500; }
   .streak-label.on { color: var(--accent); font-weight: 600; }
@@ -284,6 +284,9 @@
   .about { font-size: 13px; color: var(--ink-2); line-height: 1.55; padding: 14px 16px; }
   .about p { margin: 0 0 8px; } .about p:last-child { margin: 0; }
   .about b { color: var(--ink); }
+  .card-preview { padding: 0 16px 14px; }
+  .card-preview img { width: 100%; max-width: 420px; display: block; border-radius: 14px; border: 1px solid var(--line-2); }
+  .card-preview .d { font-size: 12.5px; color: var(--ink-3); margin-top: 8px; }
 
   #toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(10px); background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 20; max-width: 90vw; text-align: center; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -300,7 +303,7 @@
     .block-head .meta { font-size: 12px; }
     .hero { padding: 18px 16px 16px; }
     .streak-num .n { font-size: 60px; }
-    .flame-big { width: 52px; height: 68px; }
+    .flame-big { width: 50px; height: 60px; }
     .ring { width: 96px; height: 96px; }
     .hb { min-width: 48px; height: 44px; }
   }
@@ -634,16 +637,143 @@ function toggleTodo(id) { const t = S.todos.find((x) => x.id === id); if (!t) re
 function removeTodo(id) { S.todos = S.todos.filter((x) => x.id !== id); save(); render(); }
 function clearDoneTodos() { S.todos = S.todos.filter((x) => !x.done); save(); render(); toast("Done items cleared"); }
 
+/* ---------- share: streak card + PDF report ---------- */
+function drawFlame(g, x, y, k, outer, inner) {
+  g.save(); g.translate(x, y); g.scale(k, k);
+  g.fillStyle = outer; g.fill(new Path2D(FLAME_O)); g.fillStyle = inner; g.fill(new Path2D(FLAME_I));
+  g.restore();
+}
+async function streakCard() {
+  const s = streakInfo(), W = 1080, H = 1080;
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  try { await Promise.all([document.fonts.load('900 300px "Nunito"'), document.fonts.load('800 76px "Nunito"')]); } catch (e) {}
+  const F = '"Nunito", "Arial Rounded MT Bold", "Helvetica Neue", Arial, sans-serif';
+  g.fillStyle = "#FF9600"; g.fillRect(0, 0, W, H);
+  drawFlame(g, 600, 170, 6.4, "#FFC800", "#FFE38A");
+  g.fillStyle = "#FFC800";
+  for (const [x, y, r] of [[575, 260, 11], [540, 400, 7], [960, 150, 9], [650, 900, 8], [1010, 860, 6]]) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = "#FFFFFF"; g.textBaseline = "alphabetic";
+  g.font = "800 76px " + F; g.fillText("I'm on a", 80, 320);
+  const n = String(s.cur), size = n.length >= 4 ? 200 : n.length === 3 ? 260 : 320;
+  g.font = "900 " + size + "px " + F; g.fillText(n, 72, 600);
+  g.font = "800 76px " + F; g.fillText("day study", 80, 722); g.fillText("streak!", 80, 812);
+  g.font = "800 38px " + F; g.fillStyle = "rgba(255,255,255,0.9)";
+  g.fillText(s.totalHours + (s.totalHours === 1 ? " hour" : " hours") + " logged \u00b7 " + s.goalDays + (s.goalDays === 1 ? " goal day" : " goal days") + " \u00b7 best " + s.longest, 80, 880);
+  g.font = "900 58px " + F; g.fillStyle = "#FFE1B3"; g.fillText("grade b streak", 80, 1000);
+  g.font = "800 30px " + F; g.fillStyle = "rgba(255,255,255,0.75)"; g.textAlign = "right"; g.fillText("RBI Grade B \u00b7 " + fmtDate(ymd(), "full"), W - 60, 1000); g.textAlign = "left";
+  return new Promise((res) => c.toBlob(res, "image/png"));
+}
+function ensureJsPDF() {
+  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
+  if (ensureJsPDF.p) return ensureJsPDF.p;
+  ensureJsPDF.p = new Promise((res, rej) => {
+    const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    sc.onload = () => res(); sc.onerror = () => { ensureJsPDF.p = null; rej(new Error("jspdf")); }; document.head.appendChild(sc);
+  });
+  return ensureJsPDF.p;
+}
+function buildReport() {
+  const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: "pt", format: "a4" });
+  const W = 595.28, M = 46, R = W - M, today = ymd(), s = streakInfo();
+  const clean = (t) => String(t).replace(/\u2013|\u2014/g, "-").replace(/\u2019/g, "'").replace(/\u00d7/g, "x").replace(/[^\x20-\x7E\xA0-\xFF]/g, "");
+  let y = M;
+  const need = (h) => { if (y + h > 800) { doc.addPage(); y = M; } };
+  const h2 = (t) => { need(40); y += 14; doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(20, 30, 54); doc.text(clean(t), M, y); y += 8; doc.setDrawColor(214, 218, 227); doc.line(M, y, R, y); y += 14; };
+  const small = (t, x, opts) => { doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(123, 132, 151); doc.text(clean(t), x, y, opts || {}); };
+  const body = (t, x, opts) => { doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(20, 30, 54); doc.text(clean(t), x, y, opts || {}); };
+  const tableHead = (cols) => { need(20); doc.setFillColor(245, 246, 249); doc.rect(M, y - 10, R - M, 16, "F"); doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(74, 84, 104); cols.forEach(([t, x, al]) => doc.text(t, x, y + 1, { align: al || "left" })); y += 16; };
+  const tableRow = (cols, strong) => { need(16); doc.setFont("helvetica", strong ? "bold" : "normal"); doc.setFontSize(9.5); doc.setTextColor(20, 30, 54); cols.forEach(([t, x, al]) => doc.text(clean(t), x, y, { align: al || "left" })); y += 15; };
+
+  // title
+  doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(20, 30, 54); doc.text("Grade B Streak", M, y + 8);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(123, 132, 151); doc.text("Progress report", M + 150, y + 8);
+  y += 26;
+  const exam = S.settings.examDate, daysLeft = exam ? Math.max(0, diffDays(today, exam)) : null;
+  small("Generated " + fmtDate(today, "full") + (exam ? " \u00b7 Exam " + fmtDate(exam, "full") + (S.settings.examAssumed ? " (assumed)" : "") + " \u00b7 " + daysLeft + " days left" : ""), M);
+  y += 10;
+
+  // summary
+  const core = TOPICS.filter((t) => !t.opt), doneList = core.filter((t) => tstat(t.id).s === 2), prog = core.filter((t) => tstat(t.id).s === 1).length;
+  const allocTotal = core.reduce((a, t) => a + t.alloc, 0), allocDone = doneList.reduce((a, t) => a + t.alloc, 0);
+  h2("Summary");
+  const cells = [["Current streak", s.cur + " days"], ["Best streak", s.longest + " days"], ["Total hours", s.totalHours + " h"], ["Goal days", String(s.goalDays)], ["Days studied", String(s.studiedDays)], ["Daily goal", S.settings.goal + " h"],
+    ["Chapters done", doneList.length + " of " + core.length], ["In progress", String(prog)], ["Plan days covered", allocDone + " of " + allocTotal]];
+  cells.forEach((c, i) => { const col = i % 3, x = M + col * ((R - M) / 3); if (col === 0) { need(34); } small(c[0], x); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(20, 30, 54); doc.text(clean(c[1]), x, y + 15); if (col === 2 || i === cells.length - 1) y += 34; });
+
+  // hours per week
+  h2("Hours per week");
+  const mon = thisMonday(today), colsW = [["Week of", M], ["Hours", 300, "right"], ["Days", 380, "right"], ["Goal days", 460, "right"], ["Avg/day", R, "right"]];
+  tableHead(colsW);
+  for (let i = 0; i < 8; i++) { const ws = addDays(mon, -i * 7), end = i === 0 ? today : addDays(ws, 6), r = rangeHours(ws, end), n = diffDays(ws, end) + 1; if (!r.h && i > 0 && ws < S.settings.startDate) continue;
+    tableRow([[fmtDate(ws) + (i === 0 ? " (this week)" : ""), M], [String(r.h), 300, "right"], [String(r.days), 380, "right"], [String(r.goal), 460, "right"], [(r.h / n).toFixed(1), R, "right"]], i === 0); }
+
+  // hours per month
+  h2("Hours per month");
+  tableHead([["Month", M], ["Hours", 300, "right"], ["Days studied", 380, "right"], ["Goal days", 460, "right"], ["Avg/day", R, "right"]]);
+  const months = []; let cur = S.settings.startDate.slice(0, 7); const end = today.slice(0, 7);
+  while (cur <= end && months.length < 24) { months.push(cur); const [yy, mm] = cur.split("-").map(Number); cur = (mm === 12 ? yy + 1 : yy) + "-" + pad(mm === 12 ? 1 : mm + 1); }
+  if (!months.includes(end)) months.push(end);
+  months.reverse().forEach((ym) => { const [yy, mm] = ym.split("-").map(Number), first = ym + "-01", last = ymd(new Date(yy, mm, 0)), to = last > today ? today : last, r = rangeHours(first, to), n = diffDays(first, to) + 1;
+    tableRow([[MONTHS[mm - 1] + " " + yy + (ym === end ? " (so far)" : ""), M], [String(r.h), 300, "right"], [r.days + " / " + n, 380, "right"], [String(r.goal), 460, "right"], [(r.h / n).toFixed(1), R, "right"]], ym === end); });
+
+  // chapters
+  for (const c of COMPONENTS) {
+    const pr = compProgress(c);
+    h2(c.name + "  -  " + pr.done + " of " + pr.total + " chapters done \u00b7 " + pr.allocDone + " of " + pr.allocTotal + " plan days");
+    for (const t of c.topics) {
+      const x = tstat(t.id), w = workedDays(t.id);
+      const lines = doc.splitTextToSize(clean(tname(t)), 300);
+      need(14 * lines.length + 4);
+      if (x.s === 2) { doc.setFillColor(47, 143, 91); doc.rect(M, y - 8, 9, 9, "F"); }
+      else if (x.s === 1) { doc.setFillColor(255, 150, 0); doc.rect(M, y - 8, 9, 9, "F"); }
+      else { doc.setDrawColor(180, 186, 199); doc.rect(M, y - 8, 9, 9, "S"); }
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(x.s === 2 ? 123 : 20, x.s === 2 ? 132 : 30, x.s === 2 ? 151 : 54); doc.text(lines, M + 16, y);
+      const right = (x.s === 2 ? "Done" + (x.doneAt ? " " + fmtDate(x.doneAt) : "") : x.s === 1 ? "In progress" : t.opt ? "Optional" : "Not started") + (t.alloc ? " \u00b7 " + t.alloc + (t.alloc === 1 ? " day" : " days") : "") + (w ? " \u00b7 worked " + w : "");
+      small(right, R, { align: "right" });
+      y += 14 * lines.length;
+    }
+  }
+  const n = doc.getNumberOfPages();
+  for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(150, 156, 170); doc.text("grade b streak \u00b7 page " + i + " of " + n, W / 2, 826, { align: "center" }); }
+  return doc.output("blob");
+}
+async function shareBlob(blob, filename, title) {
+  const file = new File([blob], filename, { type: blob.type });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title }); return "shared"; }
+    catch (e) { if (e && e.name === "AbortError") return "cancelled"; }
+  }
+  const url = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = url; a.download = filename; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return "downloaded";
+}
+async function shareStreak() {
+  toast("Making your streak card…");
+  try { const blob = await streakCard(); const r = await shareBlob(blob, "grade-b-streak-" + ymd() + ".png", "My study streak");
+    toast(r === "shared" ? "Shared" : r === "cancelled" ? "Share cancelled" : "Image saved to downloads"); }
+  catch (e) { toast("Could not make the image"); }
+}
+async function previewStreak() {
+  try { const blob = await streakCard(); if (UI.cardUrl) URL.revokeObjectURL(UI.cardUrl); UI.cardUrl = URL.createObjectURL(blob); render(); }
+  catch (e) { toast("Could not make the image"); }
+}
+async function sharePdf() {
+  toast("Building your report…");
+  try { await ensureJsPDF(); const blob = buildReport(); const r = await shareBlob(blob, "grade-b-streak-report-" + ymd() + ".pdf", "Grade B progress report");
+    toast(r === "shared" ? "Shared" : r === "cancelled" ? "Share cancelled" : "PDF saved to downloads"); }
+  catch (e) { toast(e && e.message === "jspdf" ? "Needs internet to build the PDF the first time" : "Could not build the report"); }
+}
+
 /* ---------- render helpers ---------- */
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const FLAME_O = "M57 9 C60 4 66 5 68 12 C74 26 90 44 88 76 C87 100 70 116 50 116 C30 116 12 100 12 78 C12 58 22 46 30 30 C33 40 40 42 46 34 C51 27 53 16 57 9 Z";
+const FLAME_I = "M52 52 C55 48 57 50 58 56 C61 66 70 70 70 86 C70 98 61 106 50 106 C39 106 30 98 30 86 C30 70 46 62 52 52 Z";
 function flameBig(on) {
-  return '<span class="' + (on ? "flame-on" : "flame-off") + '"><svg class="flame-big" viewBox="0 0 64 84" aria-hidden="true">' + (on
-    ? '<defs><linearGradient id="fgOuter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB020"/><stop offset="1" stop-color="#FF9600"/></linearGradient><linearGradient id="fgInner" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE38A"/><stop offset="1" stop-color="#FFC800"/></linearGradient></defs>' +
-      '<path fill="url(#fgOuter)" d="M32 2c4 12 17 18 17 36 0 13-9 24-17 24S15 51 15 38c0-6 2-11 5-15 2 6 5 9 8 9-1-12-3-21 4-30z"/>' +
-      '<path fill="url(#fgInner)" d="M32 40c2 6 8 9 8 16 0 6-4 10-8 10s-8-4-8-10c0-3 1-6 3-8 1 3 2 4 4 4-1-5-1-9 1-12z"/>'
-    : '<path fill="var(--flame-off)" d="M32 2c4 12 17 18 17 36 0 13-9 24-17 24S15 51 15 38c0-6 2-11 5-15 2 6 5 9 8 9-1-12-3-21 4-30z"/>' +
-      '<path fill="var(--flame-off-2)" d="M32 40c2 6 8 9 8 16 0 6-4 10-8 10s-8-4-8-10c0-3 1-6 3-8 1 3 2 4 4 4-1-5-1-9 1-12z"/>') + "</svg></span>";
+  return '<span class="' + (on ? "flame-on" : "flame-off") + '"><svg class="flame-big" viewBox="0 0 100 120" aria-hidden="true">' + (on
+    ? '<defs><linearGradient id="fgOuter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB020"/><stop offset="1" stop-color="#FF9600"/></linearGradient><linearGradient id="fgInner" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE38A"/><stop offset="1" stop-color="#FFC800"/></linearGradient></defs><path fill="url(#fgOuter)" d="' + FLAME_O + '"/><path fill="url(#fgInner)" d="' + FLAME_I + '"/>'
+    : '<path fill="var(--flame-off)" d="' + FLAME_O + '"/><path fill="var(--flame-off-2)" d="' + FLAME_I + '"/>') + "</svg></span>";
 }
 function weekStrip() {
   const today = ymd(), mon = thisMonday(today), goal = S.settings.goal;
@@ -878,7 +1008,12 @@ function renderProgress() {
 
 /* ---------- Settings ---------- */
 function renderSettings() {
-  let html = '<section class="block" style="margin-top:8px"><div class="block-head"><h2>Plan</h2></div><div class="panel">' +
+  let html = '<section class="block" style="margin-top:8px"><div class="block-head"><h2>Share</h2><span class="meta">Uses the phone\'s share sheet</span></div><div class="panel">' +
+    '<div class="set"><div class="k">Streak card</div><div class="d">A square image with your streak, Duolingo style. Send it anywhere from the share sheet.</div><div class="ctl"><button class="btn sm" data-act="previewcard">Preview</button><button class="btn primary sm" data-act="shareimg">Share image</button></div></div>' +
+    (UI.cardUrl ? '<div class="card-preview"><img src="' + UI.cardUrl + '" alt="Streak card preview"><div class="d">Long-press the image to save it, or use Share image.</div></div>' : "") +
+    '<div class="set"><div class="k">Progress report</div><div class="d">A PDF with your streak, hours per week and month, and the status of every chapter.</div><div class="ctl"><button class="btn primary sm" data-act="sharepdf">Share PDF</button></div></div>' +
+    "</div></section>";
+  html += '<section class="block"><div class="block-head"><h2>Plan</h2></div><div class="panel">' +
     '<div class="set"><div class="k">Exam date' + (S.settings.examAssumed ? " · assumed" : "") + '</div><div class="d">' + (S.settings.examAssumed ? "Nine months from 16 Sept 2026 as a working assumption. Update it when RBI announces the date." : "Sets the countdown, the pace figure and the current-affairs month names.") + '</div><div class="ctl"><input type="date" id="examDate" value="' + esc(S.settings.examDate) + '" aria-label="Exam date"></div></div>' +
     '<div class="set"><div class="k">Daily hours goal</div><div class="d">Hour blocks shown on Today. Any logged hour keeps the streak; reaching the goal makes it a goal day.</div><div class="ctl"><div class="stepper"><button data-act="goal:-1" aria-label="Lower goal">−</button><b class="num">' + S.settings.goal + ' h</b><button data-act="goal:1" aria-label="Raise goal">+</button></div></div></div>' +
     '<div class="set"><div class="k">Started studying on</div><div class="d">Only used to decide where the monthly hours table begins.</div><div class="ctl"><input type="date" id="startDate" value="' + esc(S.settings.startDate) + '" aria-label="Start date"></div></div>' +
@@ -912,6 +1047,7 @@ function render() {
     if (inp && UI.focusSearch) { inp.focus(); const len = inp.value.length; inp.setSelectionRange(len, len); UI.focusSearch = false; }
     const af = document.querySelector(".add-form input[name=name]"); if (af) af.focus();
   }
+  if (UI.view === "settings") { ensureJsPDF().catch(() => {}); try { document.fonts.load('900 300px "Nunito"'); } catch (e) {} }
   if (UI.view === "todo" && UI.focusTodo) { const inp = document.getElementById("todoText"); if (inp) inp.focus(); UI.focusTodo = false; }
 }
 
@@ -940,6 +1076,9 @@ document.addEventListener("click", (e) => {
     case "rmtodo": removeTodo(arg); break;
     case "cleardone": if (confirm("Clear all done tasks?")) clearDoneTodos(); break;
     case "showdone": UI.showDone = true; render(); break;
+    case "shareimg": shareStreak(); break;
+    case "previewcard": previewStreak(); break;
+    case "sharepdf": sharePdf(); break;
     case "goal": { const g = Math.min(12, Math.max(1, S.settings.goal + Number(arg))); if (g !== S.settings.goal) { S.settings.goal = g; save(); render(); } break; }
     case "export": UI.showExport = !UI.showExport; UI.showImport = false; render(); break;
     case "import": UI.showImport = !UI.showImport; UI.showExport = false; render(); break;
