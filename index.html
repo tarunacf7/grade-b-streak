@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Grade B Streak</title>
-<meta name="description" content="Streak-based daily planner for the RBI Grade B exam, built on EduTap's 9-month two-shift study plan.">
+<meta name="description" content="Streak-based daily planner for the RBI Grade B exam, built on EduTap's chapter list.">
 <meta name="theme-color" content="#EDEFF2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1522" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -67,17 +67,15 @@
   input, textarea { font: inherit; color: var(--ink); }
   h1, h2, h3 { margin: 0; text-wrap: balance; }
   .num { font-variant-numeric: tabular-nums; }
-  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
   .eyebrow { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
 
-  .shell { max-width: 760px; margin: 0 auto; padding: 0 16px 92px; }
+  .shell { max-width: 760px; margin: 0 auto; padding: env(safe-area-inset-top) 16px 92px; }
   .top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0 10px; gap: 12px; }
   .brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .brand h1 { font-family: var(--display); font-weight: 600; font-size: 22px; }
   .brand .sub { font-size: 12px; color: var(--ink-3); }
   .sync { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
   .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); display: inline-block; }
-  .sync.on i { background: var(--good); }
 
   nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--surface); border-top: 1px solid var(--line); padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5, 1fr); }
   nav.tabs button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border-radius: 10px; color: var(--ink-3); font-size: 10.5px; font-weight: 500; }
@@ -96,7 +94,7 @@
   .block-head h2 { font-family: var(--display); font-weight: 600; font-size: 21px; }
   .block-head .meta { font-size: 12.5px; color: var(--ink-3); text-align: right; }
   .panel { background: var(--surface); border: 1px solid var(--line-2); border-radius: 14px; }
-  .empty { color: var(--ink-3); font-size: 13.5px; padding: 14px 16px; }
+  .empty { color: var(--ink-3); font-size: 13.5px; padding: 14px 16px; line-height: 1.5; }
 
   /* hero */
   .hero { position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; box-shadow: var(--shadow); padding: 22px 20px 18px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
@@ -111,7 +109,17 @@
   .flame-off { color: var(--ink-3); } .flame-on { color: var(--accent); }
   .streak-label { font-size: 14px; color: var(--ink-2); margin-top: 6px; font-weight: 500; }
   .streak-label.on { color: var(--accent); font-weight: 600; }
-  .streak-label.risk { color: var(--ink-2); }
+  .streak-stats { margin-top: 12px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
+  .streak-stats b { color: var(--ink); font-weight: 600; }
+  .ring { width: 108px; height: 108px; position: relative; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 9; }
+  .ring .track { stroke: var(--line-2); }
+  .ring .fill { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+  .ring.safe .fill { stroke: var(--good); }
+  .ring .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .center b { font-family: var(--display); font-size: 26px; font-weight: 600; line-height: 1; }
+  .ring .center span { font-size: 10.5px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
   .week { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding-top: 14px; border-top: 1px solid var(--line-2); position: relative; }
   .week::before { content: ""; position: absolute; left: calc(100% / 14); right: calc(100% / 14); top: 53px; height: 2px; background: var(--line-2); }
   .wd { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; padding: 0; }
@@ -126,25 +134,11 @@
   .wd .c.future { border-color: var(--line-2); background: transparent; }
   .wd .c.miss { border-color: var(--line); background: var(--surface-2); }
   .wd .h { font-size: 10.5px; color: var(--ink-3); font-family: var(--mono); line-height: 14px; min-height: 14px; }
-  .day-edit-hero { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--line-2); }
-  .day-edit .hours-head, .day-edit-hero .hours-head { align-items: center; }
-  .day-edit .hours-head > span:last-child, .day-edit-hero .hours-head > span:last-child { display: flex; gap: 6px; }
-  @media (prefers-reduced-motion: reduce) { .wd .c { transition: none; } }
-  .streak-stats { margin-top: 12px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
-  .streak-stats b { color: var(--ink); font-weight: 600; }
-  .ring { width: 108px; height: 108px; position: relative; }
-  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .ring circle { fill: none; stroke-width: 9; }
-  .ring .track { stroke: var(--line-2); }
-  .ring .fill { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
-  .ring.safe .fill { stroke: var(--good); }
-  .ring .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .ring .center b { font-family: var(--display); font-size: 26px; font-weight: 600; line-height: 1; }
-  .ring .center span { font-size: 10.5px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
-  .hours-wrap { grid-column: 1 / -1; padding-top: 14px; border-top: 1px solid var(--line-2); }
-  .hours-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .hours-wrap, .day-edit-hero { grid-column: 1 / -1; padding-top: 14px; border-top: 1px solid var(--line-2); }
+  .hours-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
   .hours-head .eyebrow { color: var(--ink-2); }
-  .hours-head span:last-child { font-size: 12px; color: var(--ink-3); }
+  .hours-head > span:last-child { font-size: 12px; color: var(--ink-3); display: flex; gap: 6px; align-items: center; }
+  .day-edit .hours-head .eyebrow, .day-edit-hero .hours-head .eyebrow { color: var(--ink); }
   .hours { display: flex; gap: 8px; flex-wrap: wrap; }
   .hb { flex: 1 1 0; min-width: 52px; height: 46px; border-radius: 10px; border: 1.5px solid var(--line); display: grid; place-items: center; font-family: var(--mono); font-size: 12.5px; color: var(--ink-3); background: var(--surface); transition: background 0.15s, border-color 0.15s, color 0.15s; }
   .hb:hover { border-color: var(--accent); color: var(--ink); }
@@ -154,20 +148,11 @@
   .hero-status { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--line-2); font-size: 13.5px; color: var(--ink-2); display: flex; gap: 8px; align-items: center; }
   .hero-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
   .hero-status.safe .dot { background: var(--good); } .hero-status.cold .dot { background: var(--ink-3); }
-  @media (prefers-reduced-motion: reduce) { .ring .fill, .hb { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .ring .fill, .hb, .wd .c { transition: none; } }
 
   .strip { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-radius: 12px; background: var(--primary-soft); color: var(--ink); font-size: 13.5px; }
   .strip b { font-weight: 600; }
   .strip .link { color: var(--primary); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
-  .strip .sep { color: var(--ink-3); }
-
-  /* shift cards */
-  .shift { margin-top: 14px; }
-  .shift-head { padding: 12px 16px 10px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; border-bottom: 1px solid var(--line-2); }
-  .shift-head .eyebrow { color: var(--primary); }
-  .shift-head h3 { font-family: var(--display); font-weight: 600; font-size: 19px; }
-  .shift-head .hrs { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
-  .shift-head .sub { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-2); }
 
   /* rows */
   .rows { display: flex; flex-direction: column; }
@@ -186,8 +171,8 @@
   .tag { padding: 1px 6px; border-radius: 4px; background: var(--surface-2); color: var(--ink-2); font-size: 11px; font-weight: 500; }
   .tag.late { background: var(--warn-soft); color: var(--warn); }
   .tag.opt { color: var(--ink-3); }
-  .tag.rev { background: var(--primary-soft); color: var(--primary); }
-  .tag.today { background: var(--accent-soft); color: var(--accent-ink); }
+  .tag.prog { background: var(--accent-soft); color: var(--accent-ink); }
+  .tag.today { background: var(--primary-soft); color: var(--primary); }
   .tag.good { background: var(--good-soft); color: var(--good); }
   .row .acts { display: flex; gap: 6px; align-items: center; }
   .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 500; color: var(--ink-2); border: 1px solid var(--line); background: var(--surface); white-space: nowrap; }
@@ -195,6 +180,7 @@
   .btn.primary { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
   .btn.quiet { border-color: transparent; color: var(--ink-3); padding: 6px 6px; }
   .btn.quiet:hover { color: var(--ink); background: var(--surface-2); }
+  .btn.quiet[aria-pressed="true"] { color: var(--primary); }
   .btn.danger { color: var(--warn); border-color: var(--warn); }
   .btn.sm { padding: 4px 8px; font-size: 12px; }
   .pill { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
@@ -210,14 +196,12 @@
   .heat .l1 { background: var(--heat-1); } .heat .l2 { background: var(--heat-2); } .heat .l3 { background: var(--heat-3); }
   .heat .today { outline: 1.5px solid var(--ink); outline-offset: -1.5px; }
   .heat button.sel { outline: 2px solid var(--primary); outline-offset: -2px; }
-  .heat-hint { margin-top: 10px; font-size: 11.5px; color: var(--ink-3); }
-  .day-edit { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-2); }
-  .day-edit .hours-head .eyebrow { color: var(--ink); }
-  input.hin { width: 68px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
   .heat i.future { background: transparent; border: 1px dashed var(--line-2); }
   .heat-legend { display: flex; gap: 12px; align-items: center; margin-top: 10px; font-size: 11.5px; color: var(--ink-3); flex-wrap: wrap; }
   .heat-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; background: var(--heat-0); }
   .heat-legend i.l1 { background: var(--heat-1); } .heat-legend i.l2 { background: var(--heat-2); } .heat-legend i.l3 { background: var(--heat-3); }
+  .heat-hint { margin-top: 10px; font-size: 11.5px; color: var(--ink-3); }
+  .day-edit { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-2); }
 
   /* plan */
   .toolbar { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
@@ -240,12 +224,11 @@
   .add-form { display: flex; gap: 8px; padding: 6px 14px 12px; flex-wrap: wrap; }
   .add-form input[type="text"] { flex: 1; min-width: 160px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
   .add-form input[type="date"] { padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
+  input.hin { width: 68px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
 
   /* todo */
   .todo-add { padding: 12px 14px; }
   .todo-add .add-form { padding: 0; }
-  .todo-head { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 16px 4px; }
-  .todo-head .eyebrow { color: var(--primary); }
 
   /* progress */
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -258,7 +241,7 @@
   .pace .k { color: var(--ink-3); font-size: 12px; }
   .pace .v { font-weight: 600; font-size: 15px; margin-top: 1px; }
   .pace .v.warnc { color: var(--warn); } .pace .v.goodc { color: var(--good); }
-  .pace .note2 { grid-column: 1 / -1; color: var(--ink-2); font-size: 13px; border-top: 1px solid var(--line-2); padding-top: 10px; }
+  .pace .note2 { grid-column: 1 / -1; color: var(--ink-2); font-size: 13px; border-top: 1px solid var(--line-2); padding-top: 10px; line-height: 1.5; }
   .prog-list { padding: 4px 0 6px; }
   .prog-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 10px 16px 0; }
   .prog-row .n { font-size: 14px; font-weight: 500; }
@@ -271,7 +254,6 @@
   .chart-wrap .wbar { fill: var(--primary); } .chart-wrap .wbar.met { fill: var(--good); }
   .chart-wrap .tline { stroke: var(--accent); stroke-dasharray: 3 3; stroke-width: 1; }
   .chart-wrap .grid { stroke: var(--line-2); stroke-width: 1; }
-  .chart-note { font-size: 12px; color: var(--ink-3); padding: 0 14px 12px; }
   .tbl-wrap { overflow-x: auto; }
   table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
   .tbl th { text-align: left; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; padding: 10px 14px 6px; border-bottom: 1px solid var(--line-2); }
@@ -305,11 +287,10 @@
   @media (min-width: 720px) { #toast { bottom: 28px; } }
   @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
 
-  /* ---------- phone / standalone web app ---------- */
-  .shell { padding-top: env(safe-area-inset-top); }
+  /* phone */
   button, .hb, .check { -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
   @media (max-width: 719px) {
-    input, textarea { font-size: 16px; }              /* stops iOS zooming into fields */
+    input, textarea { font-size: 16px; }
     .top { padding-top: 14px; }
     .brand .sub { display: none; }
     .block-head h2 { white-space: nowrap; }
@@ -319,7 +300,6 @@
     .flame-big { width: 52px; height: 68px; }
     .ring { width: 96px; height: 96px; }
     .hb { min-width: 48px; height: 44px; }
-    .tiles { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 380px) {
     .hero { grid-template-columns: 1fr; }
@@ -330,7 +310,7 @@
 <body>
 <div class="shell">
   <header class="top">
-    <div class="brand"><h1>Grade B Streak</h1><span class="sub">EduTap 9-month plan · RBI Grade B</span></div>
+    <div class="brand"><h1>Grade B Streak</h1><span class="sub">RBI Grade B · EduTap chapters</span></div>
     <span class="sync" id="sync"><i></i><span>Saved on this device</span></span>
   </header>
 
@@ -362,7 +342,7 @@
 <div id="toast" role="status"></div>
 
 <script>
-/* ---------- dates (first: state defaults depend on them) ---------- */
+/* ---------- dates ---------- */
 function pad(n) { return String(n).padStart(2, "0"); }
 function ymd(d = new Date()) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
 function parseYmd(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
@@ -371,7 +351,6 @@ function diffDays(a, b) { return Math.round((parseYmd(b) - parseYmd(a)) / 864e5)
 function thisMonday(d = ymd()) { const dow = (parseYmd(d).getDay() + 6) % 7; return addDays(d, -dow); }
 function fmtDate(s, style) {
   const d = parseYmd(s);
-  if (style === "long") return d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   if (style === "wd") return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
   if (style === "full") return d.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
@@ -380,12 +359,12 @@ const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /* =====================================================================
-   EduTap 9-Month Day-Wise Study Plan for RBI Grade B — components,
-   chapters and their plan days. Day numbers are EduTap's; day 7, 14, 21…
-   are Sundays (revision). Chapters with no days are optional in the plan.
+   Chapters from EduTap's 9-Month Study Plan for RBI Grade B.
+   The second field is EduTap's day allotment, used only to size each
+   chapter ("3 days"). Order and dates are not enforced anywhere.
    ===================================================================== */
 const COMPONENTS = [
-  { id: "mgmt", name: "Management", paper: "Phase 2 · Finance & Management", hours: "3 h/day Mon–Fri · 6 h Sat",
+  { id: "mgmt", name: "Management", paper: "Phase 2 · Finance & Management",
     note: "Most scoring Phase 2 component and fully static. Write at least 2 descriptive answers per chapter, then read the model Q&A. Revise often; retention is the challenge.",
     chapters: [
       ["Motivation · Part 1", "1-3"], ["Motivation · Part 2", "4-5"], ["Communication", "6,8-9"],
@@ -397,7 +376,7 @@ const COMPONENTS = [
       ["Organizational Change and Reinforcement", "38-40"], ["Corporate Governance", "41,43-44"],
       ["Ethics", "45-48"], ["Fringe Topics", "", "Optional · cover if time permits"],
     ] },
-  { id: "lr", name: "Logical Reasoning", paper: "Phase 1 · 60 marks", hours: "1 h/day Mon–Fri · 2 h Sat",
+  { id: "lr", name: "Logical Reasoning", paper: "Phase 1 · 60 marks",
     note: "Aim for 15–20 questions at 100% accuracy, not 60. Puzzles and seating carry the weight but are time-consuming; learn to pick the right questions.",
     chapters: [
       ["Alphabetical and Alphanumerical Series", "1-5"], ["Coding and Decoding", "6,8-11"], ["Syllogism", "12-13,15-18"],
@@ -407,7 +386,7 @@ const COMPONENTS = [
       ["Statement: Cause and Effect", "66"], ["Statement and Argument", "67"], ["Statement and Conclusion", "68-69"],
       ["Data Sufficiency", "69"],
     ] },
-  { id: "fin", name: "Finance", paper: "Phase 2 · Finance & Management", hours: "2 h/day Mon–Fri · 4 h Sat",
+  { id: "fin", name: "Finance", paper: "Phase 2 · Finance & Management",
     note: "General finance, not MBA or CFA depth. Focus on fundamentals. Write at least 2 descriptive answers per chapter, then read the model Q&A.",
     chapters: [
       ["Introduction to the Indian Financial System", "1"], ["Time Value of Money", "2-3"],
@@ -427,7 +406,7 @@ const COMPONENTS = [
       ["Recent Developments in the Global Financial System and impact on India", "87-88"],
       ["Descriptive Q&A on Important Reports & Current Affairs", "89-90"],
     ] },
-  { id: "qa", name: "Quantitative Aptitude", paper: "Phase 1 · 30 marks", hours: "2 h/day Mon–Fri · 4 h Sat",
+  { id: "qa", name: "Quantitative Aptitude", paper: "Phase 1 · 30 marks",
     note: "A qualifying section. Aim for 5–7 questions at 100% accuracy. In a crunch, fewer chapters at hard level is fine.",
     chapters: [
       ["Basic Fundamentals", "1-3"], ["HCF and LCM", "4", "Skip concept classes 2–5"], ["Number System", "5", "Skip concept classes 3–7"],
@@ -439,8 +418,8 @@ const COMPONENTS = [
       ["Mixed Data Interpretation", "64-68"], ["Permutation and Combination", "", "Optional in the plan"],
       ["Probability", "69"], ["Mensuration 2D", "69", "Skip concept classes 1–3 and 6"], ["Mensuration 3D", "", "Optional in the plan"],
     ] },
-  { id: "esi", name: "Economic & Social Issues", paper: "Phase 2 · ESI paper", hours: "2 h/day Mon–Fri · 4 h Sat",
-    note: "ESI is current-affairs heavy. Cover chapters within their time box without going too deep; questions come from current affairs rooted in these topics.",
+  { id: "esi", name: "Economic & Social Issues", paper: "Phase 2 · ESI paper",
+    note: "ESI is current-affairs heavy. Cover chapters without going too deep; questions come from current affairs rooted in these topics.",
     chapters: [
       ["Measurement of Growth", "1-4"], ["Poverty Alleviation and Employment Generation", "5"],
       ["Sustainable Development and Environmental Issues", "6,8"], ["Economic History of India", "9-11"],
@@ -457,14 +436,14 @@ const COMPONENTS = [
       ["Gender Issues", "39"], ["Social Justice", "40"], ["Descriptive Q&A on Important Reports & Current Affairs", "41"],
       ["Fringe Topics", "", "Optional · cover if time permits"],
     ] },
-  { id: "deng", name: "Descriptive English", paper: "Phase 2 · English paper", hours: "2 h/day Mon–Fri · 4 h Sat",
+  { id: "deng", name: "Descriptive English", paper: "Phase 2 · English paper",
     note: "A low-hanging fruit. 20–30 minutes a day of practice is enough; start early rather than in the last-minute rush.",
     chapters: [
       ["Essay Writing", "1-3"], ["Precis Writing", "4-6"], ["Reading Comprehension", "8-10"],
       ["Practice Tests · Round 1", "11-13"], ["Practice Tests · Round 2", "15-20"],
       ["Practice: Essay & Precis from editorials", "22-27"], ["Practice: Precis from editorials", "29-34"],
     ] },
-  { id: "geng", name: "General English", paper: "Phase 1 · 30 marks", hours: "2 h/day Mon–Fri · 4 h Sat",
+  { id: "geng", name: "General English", paper: "Phase 1 · 30 marks",
     note: "Grammar first, then verbal ability. Solve PYQs and the quiz after every chapter.",
     chapters: [
       ["Parts of Speech", "1"], ["Structure of Speech", "1"], ["Subject-Verb Agreement", "2-3"], ["Noun", "4-5"], ["Pronoun", "6"],
@@ -474,32 +453,19 @@ const COMPONENTS = [
       ["Cloze Test", "25"], ["Reading Comprehension", "25"], ["Phrasal Verbs", "26"], ["Idioms and Phrases", "26"],
       ["Synonyms", "27"], ["Antonyms", "27"], ["One Word Substitution", "27"], ["New Types of Questions", "27"],
     ] },
-  { id: "ca", name: "Current Affairs", paper: "Phase 1 · General Awareness + Phase 2", hours: "2 h/day · 4 h Sat for 3 weeks, then 3 h/day · 6 h Sat",
-    note: "Each fortnight: CurrentTap, SchemesTap, ReportsTap and RBI NewsTap compilations plus their quizzes. Cover 5 months before Phase 1 and 9 months before Phase 2. Starting late? Do two months of CA per month.",
+  { id: "ca", name: "Current Affairs", paper: "Phase 1 · General Awareness + Phase 2",
+    note: "Each fortnight: CurrentTap, SchemesTap, ReportsTap and RBI NewsTap compilations plus their quizzes. Cover 5 months before Phase 1 and 9 months before Phase 2.",
     chapters: [
       ["{M1} · Weeks 1–2 compilations + quizzes", "1-14"], ["{M1} · Weeks 3–4 compilations + quizzes", "15-28"],
       ["{M2} · Weeks 1–2 compilations + quizzes", "29-42"], ["{M2} · Weeks 3–4 compilations + quizzes", "43-56"],
       ["{M3} · Weeks 1–2 compilations + quizzes", "57-70"], ["{M3} · Weeks 3–4 compilations + quizzes", "71-84"],
-      ["{M4} · Weeks 1–2 compilations + quizzes", "85-91", "Pace up: remaining months continue after the plan ends"],
+      ["{M4} · Weeks 1–2 compilations + quizzes", "85-91", "Remaining months continue the same way"],
     ] },
 ];
 
-const PLAN_WEEKS = 39;
-const SCHEDULE = [
-  { w: [1, 7],   s1: { c: "mgmt" }, s2: { c: "lr" } },
-  { w: [8, 10],  s1: { c: "fin" },  s2: { c: "lr" } },
-  { w: [11, 20], s1: { c: "fin" },  s2: { c: "qa" } },
-  { w: [21, 25], s1: { c: "esi" },  s2: { c: "deng" } },
-  { w: [26, 26], s1: { c: "esi" },  s2: { c: "geng" } },
-  { w: [27, 29], s1: { c: "ca", hours: "2 h/day Mon–Fri · 4 h Sat" }, s2: { c: "geng" } },
-  { w: [30, 32], s1: { c: "ca", hours: "3 h/day Mon–Fri · 6 h Sat" }, s2: { rev: ["mgmt"], hours: "1 h/day Mon–Fri · 2 h Sat" } },
-  { w: [33, 35], s1: { c: "ca", hours: "3 h/day Mon–Fri · 6 h Sat" }, s2: { rev: ["fin"], hours: "1 h/day Mon–Fri · 2 h Sat" } },
-  { w: [36, 39], s1: { c: "ca", hours: "3 h/day Mon–Fri · 6 h Sat" }, s2: { rev: ["qa", "lr", "geng"], hours: "1 h/day Mon–Fri · 2 h Sat" } },
-];
-
 const KEY = "gradeb-streak-v2";
-const DEFAULT_START = "2026-09-14";   // Monday of the week of 16 Sept 2026
-const DEFAULT_EXAM = "2027-06-16";    // 9 months from 16 Sept 2026, assumed
+const DEFAULT_START = "2026-09-16";
+const DEFAULT_EXAM = "2027-06-16";   // 9 months from 16 Sept 2026, assumed
 
 /* ---------- index ---------- */
 let COMP = {}, TOPICS = [], BYID = {};
@@ -507,18 +473,14 @@ function parseDays(s) { if (!s) return []; return s.split(",").map((p) => { cons
 function buildIndex() {
   COMP = {}; TOPICS = []; BYID = {};
   for (const c of COMPONENTS) {
-    const blocks = SCHEDULE.filter((b) => b.s1.c === c.id || b.s2.c === c.id);
-    c.startWeek = Math.min(...blocks.map((b) => b.w[0])); c.endWeek = Math.max(...blocks.map((b) => b.w[1]));
     c.topics = [];
     c.chapters.forEach((ch, i) => {
-      const ranges = parseDays(ch[1]);
-      const t = { id: c.id + "." + pad(i + 1), raw: ch[0], ranges, opt: ranges.length === 0, note: ch[2] || "", comp: c,
-        days: ranges.flatMap(([a, b]) => Array.from({ length: b - a + 1 }, (_, k) => a + k)).filter((d) => d % 7 !== 0) };
-      t.lastDay = t.days.length ? t.days[t.days.length - 1] : 0;
+      const days = parseDays(ch[1]).flatMap(([a, b]) => Array.from({ length: b - a + 1 }, (_, k) => a + k)).filter((d) => d % 7 !== 0);
+      const t = { id: c.id + "." + pad(i + 1), raw: ch[0], alloc: days.length, opt: days.length === 0, note: ch[2] || "", comp: c };
       c.topics.push(t); TOPICS.push(t); BYID[t.id] = t;
     });
     for (const cu of (S.custom[c.id] || [])) {
-      const t = { id: cu.id, raw: cu.name, ranges: [], opt: true, note: "Added by you", comp: c, days: [], lastDay: 0, custom: true };
+      const t = { id: cu.id, raw: cu.name, alloc: 0, opt: false, note: "Added by you", comp: c, custom: true };
       c.topics.push(t); TOPICS.push(t); BYID[t.id] = t;
     }
     COMP[c.id] = c;
@@ -534,20 +496,19 @@ function tname(t) {
 }
 
 /* ---------- state ---------- */
-function fresh() { return { v: 3, settings: { planStart: DEFAULT_START, examDate: DEFAULT_EXAM, examAssumed: true, goal: 5 }, topics: {}, days: {}, todos: [], custom: {}, updatedAt: 0 }; }
+function fresh() { return { v: 4, settings: { startDate: DEFAULT_START, examDate: DEFAULT_EXAM, examAssumed: true, goal: 5 }, topics: {}, days: {}, todos: [], pins: [], pinDate: "", custom: {}, updatedAt: 0 }; }
 function migrate(r) {
   const s = Object.assign(fresh(), JSON.parse(JSON.stringify(r || {})));
-  s.settings = Object.assign({ planStart: DEFAULT_START, examDate: DEFAULT_EXAM, examAssumed: true, goal: 5 }, s.settings || {});
-  if ((r && r.v || 0) < 3) {              // v2 → v3: hours-based streak, fixed plan dates
-    s.settings.planStart = DEFAULT_START;
-    if (!s.settings.examDate) { s.settings.examDate = DEFAULT_EXAM; s.settings.examAssumed = true; }
-    s.settings.goal = 5; delete s.settings.target;
-  }
+  const old = (r && r.settings) || {};
+  s.settings = Object.assign({ startDate: old.planStart || DEFAULT_START, examDate: DEFAULT_EXAM, examAssumed: true, goal: 5 }, old);
+  delete s.settings.planStart; delete s.settings.target;
+  if (!s.settings.examDate) { s.settings.examDate = DEFAULT_EXAM; s.settings.examAssumed = true; }
   s.settings.goal = Math.min(12, Math.max(1, Number(s.settings.goal) || 5));
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(s.settings.planStart)) s.settings.planStart = DEFAULT_START;
-  s.topics = s.topics || {}; s.days = s.days || {}; s.custom = s.custom || {}; s.todos = Array.isArray(s.todos) ? s.todos : [];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s.settings.startDate)) s.settings.startDate = DEFAULT_START;
+  s.topics = s.topics || {}; s.days = s.days || {}; s.custom = s.custom || {};
+  s.todos = Array.isArray(s.todos) ? s.todos : []; s.pins = Array.isArray(s.pins) ? s.pins : []; s.pinDate = s.pinDate || "";
   for (const d of Object.keys(s.days)) { const x = s.days[d]; x.h = Number(x.h) || 0; x.t = Array.isArray(x.t) ? x.t : []; delete x.n; }
-  s.v = 3;
+  s.v = 4;
   return s;
 }
 function hasActivity(s) { return Object.keys(s.days).length > 0 || Object.keys(s.topics).length > 0 || s.todos.length > 0 || Object.keys(s.custom).length > 0; }
@@ -555,7 +516,7 @@ let S = fresh();
 try { const raw = localStorage.getItem(KEY); if (raw) S = migrate(JSON.parse(raw)); } catch (e) {}
 const UI = { view: "today", collapsed: {}, query: "", addingTo: null, showExport: false, showImport: false, focusSearch: false, showDone: false, focusTodo: false, editDay: null };
 
-/* ---------- persistence ---------- */
+/* ---------- persistence (browser storage; account sync when available) ---------- */
 let remoteRef = null, saveTimer = null, writing = false, pendingWrite = false;
 function persistLocal() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function save() { S.updatedAt = Date.now(); persistLocal(); if (remoteRef) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 600); } }
@@ -589,25 +550,6 @@ async function initSync() {
   }, () => {});
 }
 
-/* ---------- plan engine ---------- */
-function planPos(date = ymd()) { const off = diffDays(S.settings.planStart, date); return { off, week: Math.floor(off / 7) + 1, dow: ((off % 7) + 7) % 7 + 1 }; }
-function blockFor(week) { return SCHEDULE.find((b) => week >= b.w[0] && week <= b.w[1]) || null; }
-function compDay(c, week, dow) { return (week - c.startWeek) * 7 + dow; }
-function chapterDate(t, day) { return addDays(S.settings.planStart, (t.comp.startWeek - 1) * 7 + (day - 1)); }
-function chaptersOn(c, day) { return c.topics.filter((t) => t.days.includes(day)); }
-function weekChapters(c, week) { const d1 = compDay(c, week, 1); return c.topics.filter((t) => t.days.some((d) => d >= d1 && d <= d1 + 5)); }
-function revList(block) { return block.s2.rev.flatMap((id) => COMP[id].topics.filter((t) => !t.opt)); }
-function revisionOn(block, week, dow) { const list = revList(block), days = (block.w[1] - block.w[0] + 1) * 6, idx = (week - block.w[0]) * 6 + (dow - 1); return list.filter((t, i) => Math.floor((i * days) / list.length) === idx); }
-function revisionWeek(block, week) { const list = revList(block), days = (block.w[1] - block.w[0] + 1) * 6, lo = (week - block.w[0]) * 6, hi = lo + 5; return list.filter((t, i) => { const k = Math.floor((i * days) / list.length); return k >= lo && k <= hi; }); }
-function behindList(date = ymd()) {
-  const { week, dow } = planPos(date), out = [];
-  for (const c of COMPONENTS) { const cd = compDay(c, week, dow); for (const t of c.topics) if (!t.opt && t.lastDay < cd && tstat(t.id).s !== 2) out.push(t); }
-  return out;
-}
-function scheduledSoFar(date = ymd()) { const { week, dow } = planPos(date); let n = 0; for (const c of COMPONENTS) { const cd = compDay(c, week, dow); for (const t of c.topics) if (!t.opt && t.lastDay <= cd) n++; } return n; }
-function fmtRanges(t) { return t.ranges.length ? "Day " + t.ranges.map(([a, b]) => (a === b ? a : a + "–" + b)).join(", ") : ""; }
-function fmtWindow(t) { if (!t.days.length) return ""; const a = chapterDate(t, t.days[0]), b = chapterDate(t, t.lastDay); return a === b ? fmtDate(a, "wd") : fmtDate(a, "wd") + " – " + fmtDate(b, "wd"); }
-
 /* ---------- hours & streak ---------- */
 function hoursOn(d) { return (S.days[d] && S.days[d].h) || 0; }
 function studied(d) { return hoursOn(d) >= 1; }
@@ -623,8 +565,17 @@ function streakInfo() {
     studiedDays: dates.length, goalDays: Object.keys(S.days).filter(goalMet).length, totalHours: Object.values(S.days).reduce((a, x) => a + (x.h || 0), 0) };
 }
 function rangeHours(from, to) { let h = 0, days = 0, goal = 0; for (let d = from; d <= to; d = addDays(d, 1)) { const x = hoursOn(d); h += x; if (x >= 1) days++; if (x >= S.settings.goal) goal++; } return { h, days, goal }; }
+
+/* ---------- chapters ---------- */
 function tstat(id) { return S.topics[id] || { s: 0 }; }
-function compProgress(c) { const core = c.topics.filter((t) => !t.opt), done = core.filter((t) => tstat(t.id).s === 2).length, prog = core.filter((t) => tstat(t.id).s === 1).length; return { total: core.length, done, prog, pct: core.length ? Math.round((done / core.length) * 100) : 0 }; }
+function workedDays(id) { let n = 0; for (const d of Object.keys(S.days)) if (S.days[d].t.includes(id)) n++; return n; }
+function compProgress(c) {
+  const core = c.topics.filter((t) => !t.opt);
+  const done = core.filter((t) => tstat(t.id).s === 2), prog = core.filter((t) => tstat(t.id).s === 1).length;
+  const allocTotal = core.reduce((a, t) => a + t.alloc, 0), allocDone = done.reduce((a, t) => a + t.alloc, 0);
+  return { total: core.length, done: done.length, prog, pct: core.length ? Math.round((done.length / core.length) * 100) : 0, allocTotal, allocDone };
+}
+function pinnedToday() { return S.pinDate === ymd() ? S.pins : []; }
 
 /* ---------- actions ---------- */
 function ensureDay(d) { return S.days[d] || (S.days[d] = { h: 0, t: [] }); }
@@ -654,19 +605,27 @@ function backfill(from, to, h) {
 function checkIn(id) {
   const today = ymd(), day = ensureDay(today), tp = S.topics[id] || (S.topics[id] = { s: 0 });
   if (day.t.includes(id)) { day.t = day.t.filter((x) => x !== id); tidyDay(today); toast("Removed from today"); }
-  else { day.t.push(id); tp.last = today; if (tp.s === 0) tp.s = 1; if (tp.s === 2) tp.rev = (tp.rev || 0) + 1; toast(tp.s === 2 ? "Revision logged" : "Worked on today · mark Done when the chapter is finished"); }
+  else { day.t.push(id); tp.last = today; if (tp.s === 0) tp.s = 1; if (tp.s === 2) tp.rev = (tp.rev || 0) + 1; toast(tp.s === 2 ? "Revision logged" : "Worked on today · press Done when the chapter is finished"); }
   save(); render();
 }
 function markDone(id) {
   const today = ymd(), tp = S.topics[id] || (S.topics[id] = { s: 0 });
   tp.s = 2; tp.doneAt = today; tp.last = today;
   const day = ensureDay(today); if (!day.t.includes(id)) day.t.push(id);
+  S.pins = S.pins.filter((x) => x !== id);
   save(); render(); toast("Chapter done");
 }
 function reopen(id) { const tp = S.topics[id]; if (!tp) return; tp.s = 1; delete tp.doneAt; save(); render(); toast("Moved back to in progress"); }
+function resetTopic(id) { delete S.topics[id]; S.pins = S.pins.filter((x) => x !== id); save(); render(); toast("Chapter reset to not started"); }
+function togglePin(id) {
+  const today = ymd();
+  if (S.pinDate !== today) { S.pins = []; S.pinDate = today; }
+  if (S.pins.includes(id)) { S.pins = S.pins.filter((x) => x !== id); toast("Removed from today"); } else { S.pins.push(id); toast("Added to today"); }
+  save(); render();
+}
 function markAllDone(compId) { const today = ymd(); for (const t of COMP[compId].topics) { if (t.opt) continue; const tp = S.topics[t.id] || (S.topics[t.id] = { s: 0 }); if (tp.s !== 2) { tp.s = 2; tp.doneAt = tp.doneAt || today; } } save(); render(); toast(COMP[compId].name + " marked complete"); }
 function addCustom(compId, name) { name = (name || "").trim(); if (!name) return; (S.custom[compId] || (S.custom[compId] = [])).push({ id: "c." + Date.now().toString(36), name }); UI.addingTo = null; save(); buildIndex(); render(); toast("Chapter added"); }
-function removeCustom(id) { for (const k of Object.keys(S.custom)) S.custom[k] = S.custom[k].filter((c) => c.id !== id); delete S.topics[id]; save(); buildIndex(); render(); }
+function removeCustom(id) { for (const k of Object.keys(S.custom)) S.custom[k] = S.custom[k].filter((c) => c.id !== id); delete S.topics[id]; S.pins = S.pins.filter((x) => x !== id); save(); buildIndex(); render(); }
 function addTodo(text, due) { text = (text || "").trim(); if (!text) return; S.todos.push({ id: "t." + Date.now().toString(36), text, due: due || "", done: false, created: ymd() }); UI.focusTodo = true; save(); render(); }
 function toggleTodo(id) { const t = S.todos.find((x) => x.id === id); if (!t) return; t.done = !t.done; t.doneAt = t.done ? ymd() : ""; save(); render(); }
 function removeTodo(id) { S.todos = S.todos.filter((x) => x.id !== id); save(); render(); }
@@ -675,28 +634,6 @@ function clearDoneTodos() { S.todos = S.todos.filter((x) => !x.done); save(); re
 /* ---------- render helpers ---------- */
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
-const ICON_FLAME = '<svg viewBox="0 0 24 32" fill="currentColor"><path d="M12 1c1.4 4.6 6.2 6.8 6.2 13.4 0 4.8-3.3 8.6-8.2 8.6S3.8 19.2 3.8 14.4c0-2.3.8-4.1 1.7-5.6.7 2.4 2 3.4 3 3.4-.3-4.6-1.2-8 3.5-11.2zM10 25.5c-1.5 1.5-1.5 3.3 0 4.5h4c1.5-1.2 1.5-3 0-4.5-1 1-3 1-4 0z"/></svg>';
-const ICON_FLAME_OUT = '<svg viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 1.5c1.4 4.6 6.2 6.8 6.2 13.4 0 4.8-3.3 8.6-8.2 8.6S3.8 19.7 3.8 14.9c0-2.3.8-4.1 1.7-5.6.7 2.4 2 3.4 3 3.4-.3-4.6-1.2-8 3.5-11.2z"/></svg>';
-
-function topicRow(t, opts = {}) {
-  const today = ymd(), x = tstat(t.id);
-  const checked = !!(S.days[today] && S.days[today].t.includes(t.id));
-  let tags = "";
-  if (opts.tag === "late") tags += '<span class="tag late">Behind · was ' + esc(fmtWindow(t)) + "</span>";
-  if (opts.tag === "rev") tags += '<span class="tag rev">Revise</span>';
-  if (opts.tag === "today" && t.days.length > 1 && opts.day) tags += '<span class="tag today">Day ' + (t.days.indexOf(opts.day) + 1) + " of " + t.days.length + "</span>";
-  if (opts.showWindow && t.days.length) tags += "<span>" + esc(fmtRanges(t)) + " · " + esc(fmtWindow(t)) + "</span>";
-  if (t.opt) tags += '<span class="tag opt">' + esc(t.note || "Optional") + "</span>"; else if (t.note) tags += "<span>" + esc(t.note) + "</span>";
-  if (opts.crumb) tags += "<span>" + esc(t.comp.name) + "</span>";
-  const acts = x.s === 2
-    ? '<button class="pill done" data-act="reopen:' + t.id + '" title="Move back to in progress">Done' + (x.rev ? " · revised ×" + x.rev : "") + "</button>"
-    : '<button class="btn sm" data-act="done:' + t.id + '" title="Finished this chapter">Done</button>';
-  const custom = t.custom ? '<button class="btn quiet sm" data-act="removecustom:' + t.id + '" title="Remove">×</button>' : "";
-  return '<div class="row' + (opts.compact ? " compact" : "") + '">' +
-    '<button class="check' + (checked ? (x.s === 2 ? " done" : " on") : "") + '" data-act="checkin:' + t.id + '" aria-pressed="' + checked + '" title="' + (checked ? "Worked on today · tap to undo" : "Worked on this today") + '">' + ICON_CHECK + "</button>" +
-    '<div class="body"><div class="name' + (x.s === 2 ? " s2" : "") + '">' + esc(tname(t)) + "</div>" + (tags ? '<div class="crumb">' + tags + "</div>" : "") + "</div>" +
-    '<div class="acts">' + acts + custom + "</div></div>";
-}
 function flameBig(on) {
   return '<span class="' + (on ? "flame-on" : "flame-off") + '"><svg class="flame-big" viewBox="0 0 64 84" aria-hidden="true">' + (on
     ? '<defs><linearGradient id="fgOuter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6B85C"/><stop offset="1" stop-color="#D9822B"/></linearGradient><linearGradient id="fgInner" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF1CC"/><stop offset="1" stop-color="#F6B85C"/></linearGradient></defs>' +
@@ -711,7 +648,7 @@ function weekStrip() {
   for (let i = 0; i < 7; i++) {
     const d = addDays(mon, i), h = hoursOn(d), isT = d === today, fut = d > today;
     const cls = fut ? "future" : h >= goal ? "full" : h >= 1 ? "part" : isT ? "today" : "miss";
-    html += '<button class="wd" data-act="day:' + d + '" title="' + fmtDate(d, "wd") + " · " + h + ' h · tap to edit"><span class="l' + (isT ? " t" : "") + '">' + DOW[i][0] + '</span><span class="c ' + cls + '">' + (h >= 1 ? ICON_CHECK : "") + '</span><span class="h">' + (h ? h + "h" : "") + "</span></button>";
+    html += '<button class="wd" data-act="day:' + d + '"' + (fut ? " disabled" : "") + ' title="' + fmtDate(d, "wd") + " · " + h + ' h' + (fut ? "" : " · tap to edit") + '"><span class="l' + (isT ? " t" : "") + '">' + DOW[i][0] + '</span><span class="c ' + cls + '">' + (h >= 1 ? ICON_CHECK : "") + '</span><span class="h">' + (h ? h + "h" : "") + "</span></button>";
   }
   return html + "</div>";
 }
@@ -719,18 +656,18 @@ function dayEditor(cls) {
   const d = UI.editDay; if (!d || d > ymd()) return "";
   return '<div class="' + cls + '"><div class="hours-head"><span class="eyebrow">' + fmtDate(d, "wd") + " · " + hoursOn(d) + ' h</span><span><button class="btn quiet sm" data-act="hours:' + d + ':0" title="Set this day to zero hours">Clear day</button><button class="btn quiet sm" data-act="closeday">Close</button></span></div><div class="hours">' + hourBlocks(d) + "</div></div>";
 }
-function ringSvg(h, goal, safe) {
-  const r = 46, c = 2 * Math.PI * r, frac = Math.min(1, goal ? h / goal : 0);
-  return '<div class="ring' + (safe ? " safe" : "") + '"><svg viewBox="0 0 108 108"><circle class="track" cx="54" cy="54" r="' + r + '"/>' +
-    '<circle class="fill" cx="54" cy="54" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + (c * (1 - frac)).toFixed(1) + '"/></svg>' +
-    '<div class="center"><b class="num">' + h + "/" + goal + "</b><span>hours</span></div></div>";
-}
 function hourBlocks(date = ymd()) {
   const h = hoursOn(date), goal = S.settings.goal, n = Math.max(goal, h);
   let html = "";
   for (let i = 1; i <= n; i++) html += '<button class="hb' + (i <= h ? " on" : "") + (i > goal ? " extra" : "") + '" data-act="hours:' + date + ":" + (i <= h ? i - 1 : i) + '" aria-pressed="' + (i <= h) + '" title="' + (i <= h ? "Remove hour " + i : "Log hour " + i) + '">' + i + " h</button>";
   if (h >= goal) html += '<button class="hb add" data-act="hours:' + date + ":" + (h + 1) + '" title="Add an extra hour">+1 h</button>';
   return html;
+}
+function ringSvg(h, goal, safe) {
+  const r = 46, c = 2 * Math.PI * r, frac = Math.min(1, goal ? h / goal : 0);
+  return '<div class="ring' + (safe ? " safe" : "") + '"><svg viewBox="0 0 108 108"><circle class="track" cx="54" cy="54" r="' + r + '"/>' +
+    '<circle class="fill" cx="54" cy="54" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + (c * (1 - frac)).toFixed(1) + '"/></svg>' +
+    '<div class="center"><b class="num">' + h + "/" + goal + "</b><span>hours</span></div></div>";
 }
 function heatmap(weeks = 16) {
   const today = ymd(), dow = (parseYmd(today).getDay() + 6) % 7, start = addDays(today, -(dow + (weeks - 1) * 7)), goal = S.settings.goal;
@@ -750,24 +687,32 @@ function heatmap(weeks = 16) {
     (UI.editDay && UI.editDay <= today ? dayEditor("day-edit") : '<div class="heat-hint">Tap any day to log or fix its hours.</div>') + "</div>";
 }
 
-/* ---------- Today ---------- */
-function shiftCard(label, block, shift, week, dow) {
-  const spec = block[shift], isSun = dow === 7;
-  let title, sub, hours, rows;
-  if (spec.c) {
-    const c = COMP[spec.c], day = compDay(c, week, dow); hours = spec.hours || c.hours; title = c.name;
-    if (isSun) { const list = weekChapters(c, week); sub = "Sunday revision · this week's chapters (days " + compDay(c, week, 1) + "–" + (compDay(c, week, 1) + 5) + ")"; rows = list.length ? list.map((t) => topicRow(t, { tag: "rev" })).join("") : '<div class="empty">No chapters scheduled this week.</div>'; }
-    else { const list = chaptersOn(c, day); sub = "Day " + day + " of " + c.name; rows = list.length ? list.map((t) => topicRow(t, { tag: "today", day })).join("") : '<div class="empty">No new chapter today. Use the time to revise or catch up.</div>'; }
-  } else {
-    hours = spec.hours; title = "Revision · " + spec.rev.map((id) => COMP[id].name).join(", ");
-    if (isSun) { sub = "Sunday · re-run this week's revision list"; rows = revisionWeek(block, week).map((t) => topicRow(t, { tag: "rev", crumb: spec.rev.length > 1 })).join(""); }
-    else { const list = revisionOn(block, week, dow); sub = "Week " + (week - block.w[0] + 1) + " of " + (block.w[1] - block.w[0] + 1) + " revision weeks"; rows = list.length ? list.map((t) => topicRow(t, { tag: "rev", crumb: spec.rev.length > 1 })).join("") : '<div class="empty">Free revision slot. Pick your weakest chapters from the Plan tab.</div>'; }
+function topicRow(t, opts = {}) {
+  const today = ymd(), x = tstat(t.id);
+  const checked = !!(S.days[today] && S.days[today].t.includes(t.id));
+  const worked = workedDays(t.id), pinned = pinnedToday().includes(t.id);
+  let tags = "";
+  if (t.alloc) tags += '<span class="tag">' + t.alloc + (t.alloc === 1 ? " day" : " days") + "</span>";
+  if (x.s === 1) tags += '<span class="tag prog">Worked ' + worked + (worked === 1 ? " day" : " days") + "</span>";
+  if (x.s === 0 && pinned) tags += '<span class="tag today">Added today</span>';
+  if (t.opt) tags += '<span class="tag opt">' + esc(t.note || "Optional") + "</span>"; else if (t.note) tags += "<span>" + esc(t.note) + "</span>";
+  if (opts.crumb) tags += "<span>" + esc(t.comp.name) + "</span>";
+  let acts = "";
+  if (x.s === 2) acts += '<button class="pill done" data-act="reopen:' + t.id + '" title="Move back to in progress">Done' + (x.rev ? " · revised ×" + x.rev : "") + "</button>";
+  else {
+    if (x.s === 0 && opts.pin) acts += '<button class="btn quiet sm" data-act="pin:' + t.id + '" aria-pressed="' + pinned + '">' + (pinned ? "On today" : "+ Today") + "</button>";
+    acts += '<button class="btn sm" data-act="done:' + t.id + '" title="Finished this chapter">Done</button>';
   }
-  return '<section class="panel shift"><div class="shift-head"><span class="eyebrow">' + label + '</span><span class="hrs">' + esc(hours) + "</span><h3>" + esc(title) + '</h3><span class="sub">' + esc(sub) + '</span></div><div class="rows">' + rows + "</div></section>";
+  if (t.custom) acts += '<button class="btn quiet sm" data-act="removecustom:' + t.id + '" title="Remove">×</button>';
+  return '<div class="row' + (opts.compact ? " compact" : "") + '">' +
+    '<button class="check' + (checked ? (x.s === 2 ? " done" : " on") : "") + '" data-act="checkin:' + t.id + '" aria-pressed="' + checked + '" title="' + (checked ? "Worked on today · tap to undo" : "Worked on this today") + '">' + ICON_CHECK + "</button>" +
+    '<div class="body"><div class="name' + (x.s === 2 ? " s2" : "") + '">' + esc(tname(t)) + "</div>" + (tags ? '<div class="crumb">' + tags + "</div>" : "") + "</div>" +
+    '<div class="acts">' + acts + "</div></div>";
 }
 
+/* ---------- Today ---------- */
 function renderToday() {
-  const s = streakInfo(), today = ymd(), pos = planPos(today), block = blockFor(pos.week);
+  const s = streakInfo(), today = ymd();
   let status, cls;
   if (s.goalToday) { status = "Goal met with " + s.todayH + " h. Streak is day " + s.cur + ". Extra hours still count."; cls = "safe"; }
   else if (s.studiedToday) { status = s.todayH + " h in. Streak safe. " + (s.goal - s.todayH) + " more " + (s.goal - s.todayH === 1 ? "hour" : "hours") + " hits today's goal."; cls = "safe"; }
@@ -777,34 +722,23 @@ function renderToday() {
   const label = lit ? "day streak" + (s.goalToday ? " · goal met" : "") : s.cur > 0 ? "day streak · at risk" : "day streak";
 
   let html = '<section class="block" style="margin-top:8px"><div class="hero"><div>' +
-    '<div class="streak-num' + (lit ? " on" : "") + '">' + flameBig(lit) + '<span class="n num">' + s.cur + '</span></div><div class="streak-label' + (lit ? " on" : s.cur > 0 ? " risk" : "") + '">' + label + "</div>" +
+    '<div class="streak-num' + (lit ? " on" : "") + '">' + flameBig(lit) + '<span class="n num">' + s.cur + '</span></div><div class="streak-label' + (lit ? " on" : "") + '">' + label + "</div>" +
     '<div class="streak-stats"><span>Best <b class="num">' + s.longest + '</b></span><span>Goal days <b class="num">' + s.goalDays + '</b></span><span>Total <b class="num">' + s.totalHours + " h</b></span></div></div>" +
-    ringSvg(s.todayH, s.goal, s.goalToday) +
-    weekStrip() + dayEditor("day-edit-hero") +
+    ringSvg(s.todayH, s.goal, s.goalToday) + weekStrip() + dayEditor("day-edit-hero") +
     '<div class="hours-wrap"><div class="hours-head"><span class="eyebrow">Hours today</span><span>Tap each hour as you finish it</span></div><div class="hours">' + hourBlocks() + "</div></div>" +
     '<div class="hero-status ' + cls + '"><span class="dot"></span><span>' + status + "</span></div></div>";
 
-  let strip;
-  if (pos.week < 1) strip = "<span>Plan starts <b>" + fmtDate(S.settings.planStart, "full") + "</b> with Management and Reasoning.</span><button class=\"link\" data-act=\"nav:settings\">Change start</button>";
-  else if (pos.week > PLAN_WEEKS) strip = "<span><b>Plan complete</b> · 39 weeks done. Final stretch below.</span>";
-  else strip = "<span><b>Week " + pos.week + "</b> of " + PLAN_WEEKS + ' <span class="sep">·</span> ' + DOW[pos.dow - 1] + ", " + fmtDate(today) + "</span>" +
-    (S.settings.examDate ? '<span class="num">' + Math.max(0, diffDays(today, S.settings.examDate)) + " days to exam" + (S.settings.examAssumed ? " (assumed)" : "") + "</span>" : '<button class="link" data-act="nav:settings">Set exam date</button>');
-  html += '<div class="strip">' + strip + "</div></section>";
+  const core = TOPICS.filter((t) => !t.opt), done = core.filter((t) => tstat(t.id).s === 2).length;
+  html += '<div class="strip"><span>' + (S.settings.examDate ? '<b class="num">' + Math.max(0, diffDays(today, S.settings.examDate)) + " days</b> to exam" + (S.settings.examAssumed ? " (assumed)" : "") : '<button class="link" data-act="nav:settings">Set exam date</button>') +
+    '</span><span class="num"><b>' + done + "</b> of " + core.length + " chapters done</span></div></section>";
 
-  if (block) {
-    html += '<section class="block"><div class="block-head"><h2>' + (pos.dow === 7 ? "Sunday revision" : "Today's shifts") + '</h2><span class="meta">Tick a chapter when you work on it · Done when finished</span></div>' +
-      shiftCard("Shift 1", block, "s1", pos.week, pos.dow) + shiftCard("Shift 2", block, "s2", pos.week, pos.dow) + "</section>";
-  } else if (pos.week > PLAN_WEEKS) {
-    html += '<section class="block"><div class="block-head"><h2>Final stretch</h2></div><div class="panel about">' +
-      "<p><b>Notification to Phase 1 (about 6 weeks).</b> Shift 1: revise covered current affairs and keep adding new months, 2 h/day and 4 h Saturday. Shift 2: practise Quant, Reasoning and English with sectional mocks. Mock tests on Sundays. Final week: a daily exam-like mock.</p>" +
-      "<p><b>Phase 1 to Phase 2 (about 3 weeks).</b> Revise current affairs 1 h/day, cover new current affairs 1 h/day, and revise Finance, Management and ESI 2 h/day. Final week: two full mocks, analysed.</p></div></section>";
-  }
-
-  const behind = behindList(today);
-  if (behind.length && pos.week >= 1) {
-    html += '<section class="block"><div class="block-head"><h2>Catch up</h2><span class="meta">' + behind.length + " chapter" + (behind.length > 1 ? "s" : "") + ' past plan days</span></div><div class="panel rows">' +
-      behind.slice(0, 6).map((t) => topicRow(t, { tag: "late", crumb: true })).join("") + (behind.length > 6 ? '<div class="empty">' + (behind.length - 6) + " more in the Plan tab.</div>" : "") + "</div></section>";
-  }
+  const inprog = TOPICS.filter((t) => tstat(t.id).s === 1).sort((a, b) => ((tstat(b.id).last || "") > (tstat(a.id).last || "") ? 1 : -1));
+  const pinned = pinnedToday().map((id) => BYID[id]).filter((t) => t && tstat(t.id).s === 0);
+  const list = [...inprog, ...pinned];
+  html += '<section class="block"><div class="block-head"><h2>Today\'s chapters</h2><span class="meta">' + (list.length ? "Tick when you work on one · Done when finished" : "Your list, your order") + '</span></div><div class="panel rows">' +
+    (list.length ? list.map((t) => topicRow(t, { crumb: true })).join("") :
+      '<div class="empty">Nothing lined up. Open the <b>Plan</b> tab and tap <b>+ Today</b> on the chapters you want to work on, or tick a chapter when you start it. Chapters you have started stay here until you press Done.</div>') +
+    (list.length ? '<div class="comp-foot"><button class="btn quiet sm" data-act="nav:syllabus">+ Add more from Plan</button></div>' : "") + "</div></section>";
 
   const open = S.todos.filter((t) => !t.done);
   if (open.length) {
@@ -819,25 +753,27 @@ function renderToday() {
 
 /* ---------- Plan ---------- */
 function renderSyllabus() {
-  const q = UI.query.trim().toLowerCase(), pos = planPos();
-  let html = '<div class="toolbar"><input class="search" id="search" type="search" placeholder="Search chapters" value="' + esc(UI.query) + '" aria-label="Search chapters"></div>', any = false;
-  for (const c of COMPONENTS) {
+  const q = UI.query.trim().toLowerCase();
+  const anyActive = COMPONENTS.some((c) => c.topics.some((t) => tstat(t.id).s === 1 || pinnedToday().includes(t.id)));
+  let html = '<div class="toolbar"><input class="search" id="search" type="search" placeholder="Search chapters" value="' + esc(UI.query) + '" aria-label="Search chapters"></div>' +
+    '<div class="empty" style="padding:10px 2px 0">Days are EduTap\'s allotment per chapter, a guide for how big it is. Study in any order you like.</div>';
+  let any = false;
+  COMPONENTS.forEach((c, idx) => {
     const topics = q ? c.topics.filter((t) => tname(t).toLowerCase().includes(q) || c.name.toLowerCase().includes(q)) : c.topics;
-    if (q && !topics.length) continue; any = true;
+    if (q && !topics.length) return; any = true;
     const pr = compProgress(c);
-    const collapsed = !q && (UI.collapsed[c.id] !== undefined ? UI.collapsed[c.id] : !(pos.week >= c.startWeek && pos.week <= c.endWeek));
-    const win = fmtDate(addDays(S.settings.planStart, (c.startWeek - 1) * 7)) + " – " + fmtDate(addDays(S.settings.planStart, c.endWeek * 7 - 1));
-    const shift = SCHEDULE.find((b) => b.s1.c === c.id) ? "Shift 1" : "Shift 2";
+    const active = c.topics.some((t) => tstat(t.id).s === 1 || pinnedToday().includes(t.id));
+    const collapsed = !q && (UI.collapsed[c.id] !== undefined ? UI.collapsed[c.id] : anyActive ? !active : idx !== 0);
     html += '<section class="comp panel' + (collapsed ? " collapsed" : "") + '"><button class="comp-head" data-act="toggle:' + c.id + '" aria-expanded="' + !collapsed + '">' +
-      "<div><h3>" + esc(c.name) + '</h3><div class="meta">' + esc(c.paper) + " · Weeks " + c.startWeek + "–" + c.endWeek + " · " + shift + "<br>" + win + " · " + esc(c.hours) + "</div></div>" +
+      "<div><h3>" + esc(c.name) + '</h3><div class="meta">' + esc(c.paper) + " · " + pr.total + " chapters · " + pr.allocTotal + " plan days</div></div>" +
       '<div class="pct num">' + pr.pct + "%<small>" + pr.done + " of " + pr.total + "</small></div></button>" +
       '<div class="bar"><b style="width:' + pr.pct + '%"></b></div><div class="comp-body"><div class="comp-note">' + esc(c.note) + '</div><div class="rows">' +
-      topics.map((t) => topicRow(t, { compact: true, showWindow: true })).join("") + "</div>";
+      topics.map((t) => topicRow(t, { compact: true, pin: true })).join("") + "</div>";
     if (!q) html += UI.addingTo === c.id
       ? '<form class="add-form" data-comp="' + c.id + '"><input type="text" name="name" placeholder="Chapter name" aria-label="Chapter name"><button class="btn primary sm" type="submit">Add</button><button class="btn quiet sm" type="button" data-act="cancel-add">Cancel</button></form>'
       : '<div class="comp-foot"><button class="btn quiet sm" data-act="add:' + c.id + '">+ Add chapter</button>' + (pr.done < pr.total ? '<button class="btn quiet sm" data-act="alldone:' + c.id + '">Mark all done</button>' : "") + "</div>";
     html += "</div></section>";
-  }
+  });
   if (!any) html += '<div class="panel" style="margin-top:16px"><div class="empty">No chapters match “' + esc(UI.query) + "”.</div></div>";
   return html;
 }
@@ -853,7 +789,6 @@ function todoRow(t) {
     '<div class="acts"><button class="btn quiet sm" data-act="rmtodo:' + t.id + '" title="Delete">×</button></div></div>';
 }
 function renderTodo() {
-  const today = ymd();
   const open = S.todos.filter((t) => !t.done).sort((a, b) => (a.due || "9999") < (b.due || "9999") ? -1 : (a.due || "9999") > (b.due || "9999") ? 1 : a.created < b.created ? -1 : 1);
   const done = S.todos.filter((t) => t.done).sort((a, b) => (b.doneAt || "") < (a.doneAt || "") ? -1 : 1);
   let html = '<section class="block" style="margin-top:8px"><div class="panel todo-add"><form class="add-form" id="todoForm">' +
@@ -887,68 +822,71 @@ function weeklyChart() {
   return svg + "</svg>";
 }
 function renderProgress() {
-  const s = streakInfo(), today = ymd(), pos = planPos(today), goal = S.settings.goal;
+  const s = streakInfo(), today = ymd(), goal = S.settings.goal;
   const mon = thisMonday(today), wk = rangeHours(mon, today);
   const m0 = today.slice(0, 8) + "01", mo = rangeHours(m0, today);
   const last30 = rangeHours(addDays(today, -29), today);
-  const core = TOPICS.filter((t) => !t.opt), done = core.filter((t) => tstat(t.id).s === 2).length;
-  const sched = scheduledSoFar(today), behind = behindList(today).length;
+  const core = TOPICS.filter((t) => !t.opt), doneList = core.filter((t) => tstat(t.id).s === 2), done = doneList.length, prog = core.filter((t) => tstat(t.id).s === 1).length;
+  const allocTotal = core.reduce((a, t) => a + t.alloc, 0), allocDone = doneList.reduce((a, t) => a + t.alloc, 0);
+  const done14 = doneList.filter((t) => tstat(t.id).doneAt && diffDays(tstat(t.id).doneAt, today) < 14).length;
+  const daysLeft = S.settings.examDate ? diffDays(today, S.settings.examDate) : null;
 
   let html = '<section class="block" style="margin-top:8px"><div class="tiles">' +
     '<div class="tile"><div class="v num">' + wk.h + ' <small>h</small></div><div class="k">This week · goal ' + goal * 7 + " h</div></div>" +
     '<div class="tile"><div class="v num">' + mo.h + ' <small>h</small></div><div class="k">' + MONTHS[parseYmd(today).getMonth()] + " so far · " + mo.days + (mo.days === 1 ? " day" : " days") + "</div></div>" +
     '<div class="tile"><div class="v num">' + (last30.h / 30).toFixed(1) + ' <small>h/day</small></div><div class="k">30-day average · streak ' + s.cur + "</div></div></div></section>";
 
-  // weekly table
+  let note;
+  if (daysLeft === null) note = "Set an exam date in Settings to see the pace you need.";
+  else if (daysLeft <= 0) note = "The exam date has passed. Update it in Settings.";
+  else {
+    const remaining = core.length - done, needWeek = (remaining / daysLeft) * 7, rateWeek = done14 / 2;
+    note = "To finish all " + core.length + " chapters before the exam you need about <b>" + needWeek.toFixed(1) + " chapters a week</b>. Your last two weeks: " + rateWeek.toFixed(1) + " a week." +
+      (rateWeek >= needWeek ? " You are on pace." : rateWeek > 0 ? " Pick it up a little." : "");
+  }
+  html += '<section class="block"><div class="block-head"><h2>Syllabus</h2><span class="meta">' + (S.settings.examDate ? "Exam " + fmtDate(S.settings.examDate, "full") + (S.settings.examAssumed ? " (assumed)" : "") : "") + '</span></div><div class="panel pace">' +
+    '<div><div class="k">Chapters done</div><div class="v num">' + done + " of " + core.length + "</div></div>" +
+    '<div><div class="k">In progress</div><div class="v num">' + prog + "</div></div>" +
+    '<div><div class="k">Plan days covered</div><div class="v num">' + allocDone + " of " + allocTotal + "</div></div>" +
+    '<div><div class="k">Days to exam</div><div class="v num">' + (daysLeft === null ? "—" : Math.max(0, daysLeft)) + "</div></div>" +
+    '<div class="note2">' + note + "</div></div></section>";
+
   const weekStarts = []; for (let i = 0; i < 8; i++) weekStarts.push(addDays(mon, -i * 7));
-  html += '<section class="block"><div class="block-head"><h2>Hours per week</h2><span class="meta">Dashed line = ' + goal * 7 + " h</span></div><div class=\"panel\"><div class=\"chart-wrap\">" + weeklyChart() + '</div>' +
+  html += '<section class="block"><div class="block-head"><h2>Hours per week</h2><span class="meta">Dashed line = ' + goal * 7 + " h</span></div><div class=\"panel\"><div class=\"chart-wrap\">" + weeklyChart() + "</div>" +
     '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Week of</th><th class="r">Hours</th><th class="r">Days</th><th class="r">Goal days</th><th class="r">Avg/day</th></tr></thead><tbody>' +
     weekStarts.map((ws, i) => { const end = i === 0 ? today : addDays(ws, 6), r = rangeHours(ws, end), n = diffDays(ws, end) + 1;
-      if (!r.h && i > 0 && ws < S.settings.planStart) return "";
+      if (!r.h && i > 0 && ws < S.settings.startDate) return "";
       return "<tr><td" + (i === 0 ? ' class="cur"' : "") + ">" + fmtDate(ws) + (i === 0 ? ' <span class="dim">· this week</span>' : "") + '</td><td class="r' + (r.h >= goal * 7 ? " met" : "") + '">' + r.h + '</td><td class="r">' + r.days + '</td><td class="r">' + r.goal + '</td><td class="r">' + (r.h / n).toFixed(1) + "</td></tr>"; }).join("") +
     "</tbody></table></div></div></section>";
 
-  // monthly table since plan start
-  const months = []; let cur = S.settings.planStart.slice(0, 7); const end = today.slice(0, 7);
+  const months = []; let cur = S.settings.startDate.slice(0, 7); const end = today.slice(0, 7);
   while (cur <= end && months.length < 24) { months.push(cur); const [y, m] = cur.split("-").map(Number); cur = (m === 12 ? y + 1 : y) + "-" + pad(m === 12 ? 1 : m + 1); }
   if (!months.includes(end)) months.push(end);
-  html += '<section class="block"><div class="block-head"><h2>Hours per month</h2><span class="meta">Since ' + fmtDate(S.settings.planStart) + '</span></div><div class="panel tbl-wrap"><table class="tbl"><thead><tr><th>Month</th><th class="r">Hours</th><th class="r">Days studied</th><th class="r">Goal days</th><th class="r">Avg/day</th></tr></thead><tbody>' +
+  html += '<section class="block"><div class="block-head"><h2>Hours per month</h2><span class="meta">Since ' + fmtDate(S.settings.startDate) + '</span></div><div class="panel tbl-wrap"><table class="tbl"><thead><tr><th>Month</th><th class="r">Hours</th><th class="r">Days studied</th><th class="r">Goal days</th><th class="r">Avg/day</th></tr></thead><tbody>' +
     months.reverse().map((ym) => { const [y, m] = ym.split("-").map(Number); const first = ym + "-01", lastOfMonth = ymd(new Date(y, m, 0)); const to = lastOfMonth > today ? today : lastOfMonth; const r = rangeHours(first, to), n = diffDays(first, to) + 1;
       return "<tr><td" + (ym === end ? ' class="cur"' : "") + ">" + MONTHS[m - 1] + " " + y + (ym === end ? ' <span class="dim">· so far</span>' : "") + '</td><td class="r">' + r.h + '</td><td class="r">' + r.days + " / " + n + '</td><td class="r">' + r.goal + '</td><td class="r">' + (r.h / n).toFixed(1) + "</td></tr>"; }).join("") +
     "</tbody></table></div></section>";
 
-  let verdict, vcls = "";
-  if (pos.week < 1) verdict = "The plan starts on " + fmtDate(S.settings.planStart, "full") + ". Nothing is due yet.";
-  else if (behind === 0) { verdict = "On track. Every chapter scheduled so far is done."; vcls = "goodc"; }
-  else { verdict = behind + " chapter" + (behind > 1 ? "s are" : " is") + " past " + (behind > 1 ? "their" : "its") + " plan days. Use Sundays and Saturday hours to catch up, as the plan suggests."; vcls = "warnc"; }
-  html += '<section class="block"><div class="block-head"><h2>Plan status</h2><span class="meta">Started ' + fmtDate(S.settings.planStart, "full") + '</span></div><div class="panel pace">' +
-    '<div><div class="k">Plan week</div><div class="v num">' + (pos.week < 1 ? "Not started" : Math.min(PLAN_WEEKS, pos.week) + " of " + PLAN_WEEKS) + "</div></div>" +
-    '<div><div class="k">Chapters done</div><div class="v num">' + done + " of " + core.length + "</div></div>" +
-    '<div><div class="k">Scheduled so far</div><div class="v num">' + sched + "</div></div>" +
-    '<div><div class="k">Behind</div><div class="v num ' + vcls + '">' + behind + "</div></div>" +
-    (S.settings.examDate ? '<div><div class="k">Exam' + (S.settings.examAssumed ? " (assumed)" : "") + '</div><div class="v">' + fmtDate(S.settings.examDate, "full") + '</div></div><div><div class="k">Days left</div><div class="v num">' + Math.max(0, diffDays(today, S.settings.examDate)) + "</div></div>" : "") +
-    '<div class="note2">' + verdict + "</div></div></section>";
-
-  html += '<section class="block"><div class="block-head"><h2>By component</h2><span class="meta">In plan order</span></div><div class="panel prog-list">';
-  for (const c of COMPONENTS) { const pr = compProgress(c), state = pos.week < c.startWeek ? "Starts week " + c.startWeek : pos.week > c.endWeek ? "Window over" : "Active now";
-    html += '<div class="prog-row"><div class="n">' + esc(c.name) + "<small>Weeks " + c.startWeek + "–" + c.endWeek + " · " + state + '</small></div><div class="c num">' + pr.done + " / " + pr.total + '</div></div><div class="bar prog-bar"><b style="width:' + pr.pct + '%"></b></div>'; }
+  html += '<section class="block"><div class="block-head"><h2>By component</h2><span class="meta">Chapters done · plan days</span></div><div class="panel prog-list">';
+  for (const c of COMPONENTS) { const pr = compProgress(c);
+    html += '<div class="prog-row"><div class="n">' + esc(c.name) + (pr.prog ? "<small>" + pr.prog + " in progress</small>" : "") + '</div><div class="c num">' + pr.done + " / " + pr.total + " · " + pr.allocDone + " / " + pr.allocTotal + ' days</div></div><div class="bar prog-bar"><b style="width:' + pr.pct + '%"></b></div>'; }
   return html + "</div></section>";
 }
 
 /* ---------- Settings ---------- */
 function renderSettings() {
   let html = '<section class="block" style="margin-top:8px"><div class="block-head"><h2>Plan</h2></div><div class="panel">' +
-    '<div class="set"><div class="k">Plan start (a Monday)</div><div class="d">Week 1 begins here. Set to the week of 16 Sept 2026.</div><div class="ctl"><input type="date" id="planStart" value="' + esc(S.settings.planStart) + '" aria-label="Plan start date"></div></div>' +
-    '<div class="set"><div class="k">Exam date' + (S.settings.examAssumed ? " · assumed" : "") + '</div><div class="d">' + (S.settings.examAssumed ? "Nine months from 16 Sept 2026 as a working assumption. Update it when RBI announces the date." : "Sets the countdown and names the current-affairs months.") + '</div><div class="ctl"><input type="date" id="examDate" value="' + esc(S.settings.examDate) + '" aria-label="Exam date"></div></div>' +
-    '<div class="set full"><div class="k">Backfill earlier days</div><div class="d">Studied before you set this up? Log hours for a run of past days in one go. Each day in the range gets at least this many hours.</div>' +
-    '<form class="add-form" id="backfillForm" style="padding:8px 0 0"><input type="date" name="from" value="' + addDays(ymd(), -1) + '" min="' + esc(S.settings.planStart) + '" max="' + ymd() + '" aria-label="From date"><input type="date" name="to" value="' + addDays(ymd(), -1) + '" max="' + ymd() + '" aria-label="To date"><input type="number" name="h" min="1" max="24" value="' + S.settings.goal + '" class="hin" aria-label="Hours per day"><button class="btn primary sm" type="submit">Apply</button></form></div>' +
+    '<div class="set"><div class="k">Exam date' + (S.settings.examAssumed ? " · assumed" : "") + '</div><div class="d">' + (S.settings.examAssumed ? "Nine months from 16 Sept 2026 as a working assumption. Update it when RBI announces the date." : "Sets the countdown, the pace figure and the current-affairs month names.") + '</div><div class="ctl"><input type="date" id="examDate" value="' + esc(S.settings.examDate) + '" aria-label="Exam date"></div></div>' +
     '<div class="set"><div class="k">Daily hours goal</div><div class="d">Hour blocks shown on Today. Any logged hour keeps the streak; reaching the goal makes it a goal day.</div><div class="ctl"><div class="stepper"><button data-act="goal:-1" aria-label="Lower goal">−</button><b class="num">' + S.settings.goal + ' h</b><button data-act="goal:1" aria-label="Raise goal">+</button></div></div></div>' +
+    '<div class="set"><div class="k">Started studying on</div><div class="d">Only used to decide where the monthly hours table begins.</div><div class="ctl"><input type="date" id="startDate" value="' + esc(S.settings.startDate) + '" aria-label="Start date"></div></div>' +
+    '<div class="set full"><div class="k">Backfill earlier days</div><div class="d">Studied before you set this up? Log hours for a run of past days in one go. Each day in the range gets at least this many hours. To undo a day, tap it in the heatmap and press Clear day.</div>' +
+    '<form class="add-form" id="backfillForm" style="padding:8px 0 0"><input type="date" name="from" value="' + addDays(ymd(), -1) + '" max="' + ymd() + '" aria-label="From date"><input type="date" name="to" value="' + addDays(ymd(), -1) + '" max="' + ymd() + '" aria-label="To date"><input type="number" name="h" min="1" max="24" value="' + S.settings.goal + '" class="hin" aria-label="Hours per day"><button class="btn primary sm" type="submit">Apply</button></form></div>' +
     "</div></section>";
   html += '<section class="block"><div class="block-head"><h2>How it works</h2></div><div class="panel about">' +
     "<p><b>Hours drive the streak.</b> Tap an hour block each time you finish an hour. Log at least one hour and the day counts. Miss a whole day and the streak resets. Five hours makes it a goal day.</p>" +
-    "<p><b>Chapters are separate.</b> Today shows EduTap's chapter for each shift. The circle means you worked on it today. Press <b>Done</b> only when the chapter is finished, however many days that takes.</p>" +
-    "<p><b>Sundays are revision.</b> The plan lists the week's chapters for both shifts. Weeks 30–39 follow EduTap's revision blocks.</p>" +
-    "<p><b>Progress</b> totals your hours per week and per month, with days studied and goal days.</p></div></section>";
+    "<p><b>Chapters are yours to order.</b> In Plan, tap <b>+ Today</b> on what you want to work on. Tick the circle when you work on a chapter; it stays on Today until you press <b>Done</b>, however many days that takes.</p>" +
+    "<p><b>Days beside a chapter</b> are EduTap's allotment, a guide to how big it is. The tag under a chapter shows how many days you have actually worked on it.</p>" +
+    "<p><b>Progress</b> totals your hours per week and per month, and tells you how many chapters a week you need to finish before the exam.</p></div></section>";
   html += '<section class="block"><div class="block-head"><h2>Your data</h2></div><div class="panel">' +
     '<div class="set full"><div class="k">Backup</div><div class="d">Copy your progress as text to keep a backup, or paste one back in.</div>' +
     '<div class="ctl"><button class="btn" data-act="export">Show backup text</button><button class="btn" data-act="import">Restore from text</button></div>' +
@@ -956,9 +894,9 @@ function renderSettings() {
     (UI.showImport ? '<textarea class="io" id="importBox" placeholder="Paste backup text here"></textarea><div class="ctl"><button class="btn primary sm" data-act="doimport">Restore</button><span class="d">This replaces your current progress.</span></div>' : "") + "</div>" +
     '<div class="set"><div class="k">Start over</div><div class="d">Clears hours, streaks, chapter status and to-dos. Keeps your dates and goal.</div><div class="ctl"><button class="btn danger sm" data-act="reset">Reset progress</button></div></div></div></section>';
   html += '<section class="block"><div class="block-head"><h2>On your phone</h2></div><div class="panel about">' +
-    "<p>Open this page in your phone browser and use <b>Add to Home Screen</b> from the share menu. It opens like an app.</p>" +
-    "<p>" + (remoteRef ? "Your progress is synced to your account, so phone and laptop stay in step." : "Progress is saved in this browser only. Stick to one browser on your phone, or use the backup text under Your data to move it.") + "</p>" +
-    "<p>Chapter list and day numbers follow EduTap's 9-Month Day-Wise Study Plan for RBI Grade B.</p></div></section>";
+    "<p>Open this page in Safari and use <b>Add to Home Screen</b>, choosing <b>Open as Web App</b>. It opens like an app.</p>" +
+    "<p>Progress is saved in this browser only. Stick to one browser on your phone, or use the backup text above to move it.</p>" +
+    "<p>Chapter list and day allotments follow EduTap's 9-Month Study Plan for RBI Grade B.</p></div></section>";
   return html;
 }
 
@@ -969,7 +907,7 @@ function render() {
   if (UI.view === "syllabus") {
     const inp = document.getElementById("search");
     if (inp && UI.focusSearch) { inp.focus(); const len = inp.value.length; inp.setSelectionRange(len, len); UI.focusSearch = false; }
-    const af = document.querySelector(".add-form input"); if (af) af.focus();
+    const af = document.querySelector(".add-form input[name=name]"); if (af) af.focus();
   }
   if (UI.view === "todo" && UI.focusTodo) { const inp = document.getElementById("todoText"); if (inp) inp.focus(); UI.focusTodo = false; }
 }
@@ -986,10 +924,11 @@ document.addEventListener("click", (e) => {
     case "hours": { const [d, n] = arg.split(":"); setHours(Number(n), d); break; }
     case "day": UI.editDay = UI.editDay === arg ? null : arg; render(); break;
     case "closeday": UI.editDay = null; render(); break;
-    case "toggle": { const c = COMP[arg], pos = planPos(); const cur = UI.collapsed[arg] !== undefined ? UI.collapsed[arg] : !(pos.week >= c.startWeek && pos.week <= c.endWeek); UI.collapsed[arg] = !cur; render(); break; }
+    case "toggle": { const c = COMP[arg]; const el = btn.closest(".comp"); UI.collapsed[arg] = !el.classList.contains("collapsed"); render(); break; }
     case "checkin": checkIn(arg); break;
     case "done": markDone(arg); break;
     case "reopen": reopen(arg); break;
+    case "pin": togglePin(arg); break;
     case "alldone": if (confirm("Mark every chapter in " + COMP[arg].name + " as done?")) markAllDone(arg); break;
     case "add": UI.addingTo = arg; render(); break;
     case "cancel-add": UI.addingTo = null; render(); break;
@@ -1023,7 +962,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.
 document.addEventListener("input", (e) => { if (e.target.id === "search") { UI.query = e.target.value; UI.focusSearch = true; render(); } });
 document.addEventListener("change", (e) => {
   if (e.target.id === "examDate") { S.settings.examDate = e.target.value || ""; S.settings.examAssumed = false; save(); render(); toast(S.settings.examDate ? "Exam date set" : "Exam date cleared"); }
-  if (e.target.id === "planStart" && e.target.value) { const mon = thisMonday(e.target.value); S.settings.planStart = mon; save(); render(); toast(mon === e.target.value ? "Plan start set" : "Snapped to Monday " + fmtDate(mon)); }
+  if (e.target.id === "startDate" && e.target.value) { S.settings.startDate = e.target.value; save(); render(); toast("Start date set"); }
 });
 
 render();
