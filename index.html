@@ -183,9 +183,15 @@
   .heat-months { display: grid; grid-auto-flow: column; grid-auto-columns: 14px; gap: 3px; margin-bottom: 4px; font-size: 10px; color: var(--ink-3); height: 12px; }
   .heat-months span { white-space: nowrap; }
   .heat { display: grid; grid-template-rows: repeat(7, 14px); grid-auto-flow: column; grid-auto-columns: 14px; gap: 3px; }
-  .heat i { display: block; width: 14px; height: 14px; border-radius: 3px; background: var(--heat-0); }
-  .heat i.l1 { background: var(--heat-1); } .heat i.l2 { background: var(--heat-2); } .heat i.l3 { background: var(--heat-3); }
-  .heat i.today { outline: 1.5px solid var(--ink); outline-offset: -1.5px; }
+  .heat i, .heat button { display: block; width: 14px; height: 14px; border-radius: 3px; background: var(--heat-0); padding: 0; border: 0; }
+  .heat button:hover { outline: 1.5px solid var(--ink-3); outline-offset: -1.5px; }
+  .heat .l1 { background: var(--heat-1); } .heat .l2 { background: var(--heat-2); } .heat .l3 { background: var(--heat-3); }
+  .heat .today { outline: 1.5px solid var(--ink); outline-offset: -1.5px; }
+  .heat button.sel { outline: 2px solid var(--primary); outline-offset: -2px; }
+  .heat-hint { margin-top: 10px; font-size: 11.5px; color: var(--ink-3); }
+  .day-edit { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-2); }
+  .day-edit .hours-head .eyebrow { color: var(--ink); }
+  input.hin { width: 68px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
   .heat i.future { background: transparent; border: 1px dashed var(--line-2); }
   .heat-legend { display: flex; gap: 12px; align-items: center; margin-top: 10px; font-size: 11.5px; color: var(--ink-3); flex-wrap: wrap; }
   .heat-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; background: var(--heat-0); }
@@ -524,7 +530,7 @@ function migrate(r) {
 function hasActivity(s) { return Object.keys(s.days).length > 0 || Object.keys(s.topics).length > 0 || s.todos.length > 0 || Object.keys(s.custom).length > 0; }
 let S = fresh();
 try { const raw = localStorage.getItem(KEY); if (raw) S = migrate(JSON.parse(raw)); } catch (e) {}
-const UI = { view: "today", collapsed: {}, query: "", addingTo: null, showExport: false, showImport: false, focusSearch: false, showDone: false, focusTodo: false };
+const UI = { view: "today", collapsed: {}, query: "", addingTo: null, showExport: false, showImport: false, focusSearch: false, showDone: false, focusTodo: false, editDay: null };
 
 /* ---------- persistence ---------- */
 let remoteRef = null, saveTimer = null, writing = false, pendingWrite = false;
@@ -600,15 +606,27 @@ function compProgress(c) { const core = c.topics.filter((t) => !t.opt), done = c
 /* ---------- actions ---------- */
 function ensureDay(d) { return S.days[d] || (S.days[d] = { h: 0, t: [] }); }
 function tidyDay(d) { const x = S.days[d]; if (x && !x.h && !x.t.length) delete S.days[d]; }
-function setHours(n) {
-  const today = ymd(), day = ensureDay(today), before = day.h;
-  day.h = Math.max(0, Math.min(24, n)); tidyDay(today);
+function setHours(n, date = ymd()) {
+  const today = ymd(), day = ensureDay(date), before = day.h;
+  day.h = Math.max(0, Math.min(24, n)); tidyDay(date);
   const s = streakInfo();
-  if (day.h === 0 && before > 0) toast("Hours cleared for today");
+  if (date !== today) toast(day.h === 0 ? "Hours cleared for " + fmtDate(date, "wd") : day.h + " h logged for " + fmtDate(date, "wd") + (day.h >= s.goal ? " · goal day" : "") + " · streak " + s.cur);
+  else if (day.h === 0 && before > 0) toast("Hours cleared for today");
   else if (day.h >= s.goal && before < s.goal) toast("Goal met · " + day.h + " h today. Day " + s.cur + " of your streak.");
   else if (before === 0 && day.h > 0) toast("Streak safe · day " + s.cur);
   else toast(day.h + " h logged today");
   save(); render();
+}
+function backfill(from, to, h) {
+  const today = ymd();
+  if (!from || !to || from > to) { toast("Pick a valid date range"); return; }
+  if (to > today) to = today;
+  h = Math.max(1, Math.min(24, Number(h) || 0));
+  const n = diffDays(from, to) + 1;
+  if (n > 400) { toast("That range is too long"); return; }
+  if (!confirm("Log " + h + " h on each of " + n + " days, " + fmtDate(from) + " to " + fmtDate(to) + "? Days that already have more hours keep them.")) return;
+  for (let d = from; d <= to; d = addDays(d, 1)) { const day = ensureDay(d); day.h = Math.max(day.h, h); }
+  save(); render(); toast(n + (n === 1 ? " day" : " days") + " logged · streak " + streakInfo().cur);
 }
 function checkIn(id) {
   const today = ymd(), day = ensureDay(today), tp = S.topics[id] || (S.topics[id] = { s: 0 });
@@ -662,11 +680,11 @@ function ringSvg(h, goal, safe) {
     '<circle class="fill" cx="54" cy="54" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + (c * (1 - frac)).toFixed(1) + '"/></svg>' +
     '<div class="center"><b class="num">' + h + "/" + goal + "</b><span>hours</span></div></div>";
 }
-function hourBlocks() {
-  const h = hoursOn(ymd()), goal = S.settings.goal, n = Math.max(goal, h);
+function hourBlocks(date = ymd()) {
+  const h = hoursOn(date), goal = S.settings.goal, n = Math.max(goal, h);
   let html = "";
-  for (let i = 1; i <= n; i++) html += '<button class="hb' + (i <= h ? " on" : "") + (i > goal ? " extra" : "") + '" data-act="hours:' + (i <= h ? i - 1 : i) + '" aria-pressed="' + (i <= h) + '" title="' + (i <= h ? "Remove hour " + i : "Log hour " + i) + '">' + i + " h</button>";
-  if (h >= goal) html += '<button class="hb add" data-act="hours:' + (h + 1) + '" title="Add an extra hour">+1 h</button>';
+  for (let i = 1; i <= n; i++) html += '<button class="hb' + (i <= h ? " on" : "") + (i > goal ? " extra" : "") + '" data-act="hours:' + date + ":" + (i <= h ? i - 1 : i) + '" aria-pressed="' + (i <= h) + '" title="' + (i <= h ? "Remove hour " + i : "Log hour " + i) + '">' + i + " h</button>";
+  if (h >= goal) html += '<button class="hb add" data-act="hours:' + date + ":" + (h + 1) + '" title="Add an extra hour">+1 h</button>';
   return html;
 }
 function heatmap(weeks = 16) {
@@ -679,11 +697,14 @@ function heatmap(weeks = 16) {
       const day = addDays(start, w * 7 + d);
       if (day > today) { cells += '<i class="future"></i>'; continue; }
       const h = hoursOn(day), lvl = h === 0 ? 0 : h >= goal ? 3 : h >= goal / 2 ? 2 : 1;
-      cells += '<i class="l' + lvl + (day === today ? " today" : "") + '" title="' + fmtDate(day) + " · " + h + " h" + '"></i>';
+      cells += '<button class="l' + lvl + (day === today ? " today" : "") + (UI.editDay === day ? " sel" : "") + '" data-act="day:' + day + '" title="' + fmtDate(day, "wd") + " · " + h + ' h · tap to edit" aria-label="' + fmtDate(day, "wd") + ", " + h + ' hours, tap to edit"></button>';
     }
   }
   return '<div class="heat-wrap"><div class="heat-months">' + months + '</div><div class="heat">' + cells + "</div>" +
-    '<div class="heat-legend"><span><i></i>No study</span><span><i class="l1"></i>Under half</span><span><i class="l2"></i>Most of goal</span><span><i class="l3"></i>Goal met</span></div></div>';
+    '<div class="heat-legend"><span><i></i>No study</span><span><i class="l1"></i>Under half</span><span><i class="l2"></i>Most of goal</span><span><i class="l3"></i>Goal met</span></div>' +
+    (UI.editDay && UI.editDay <= today
+      ? '<div class="day-edit"><div class="hours-head"><span class="eyebrow">' + fmtDate(UI.editDay, "wd") + " · " + hoursOn(UI.editDay) + ' h</span><button class="btn quiet sm" data-act="closeday">Close</button></div><div class="hours">' + hourBlocks(UI.editDay) + "</div></div>"
+      : '<div class="heat-hint">Tap any day to log or fix its hours.</div>') + "</div>";
 }
 
 /* ---------- Today ---------- */
@@ -874,6 +895,8 @@ function renderSettings() {
   let html = '<section class="block" style="margin-top:8px"><div class="block-head"><h2>Plan</h2></div><div class="panel">' +
     '<div class="set"><div class="k">Plan start (a Monday)</div><div class="d">Week 1 begins here. Set to the week of 16 Sept 2026.</div><div class="ctl"><input type="date" id="planStart" value="' + esc(S.settings.planStart) + '" aria-label="Plan start date"></div></div>' +
     '<div class="set"><div class="k">Exam date' + (S.settings.examAssumed ? " · assumed" : "") + '</div><div class="d">' + (S.settings.examAssumed ? "Nine months from 16 Sept 2026 as a working assumption. Update it when RBI announces the date." : "Sets the countdown and names the current-affairs months.") + '</div><div class="ctl"><input type="date" id="examDate" value="' + esc(S.settings.examDate) + '" aria-label="Exam date"></div></div>' +
+    '<div class="set full"><div class="k">Backfill earlier days</div><div class="d">Studied before you set this up? Log hours for a run of past days in one go. Each day in the range gets at least this many hours.</div>' +
+    '<form class="add-form" id="backfillForm" style="padding:8px 0 0"><input type="date" name="from" value="' + esc(S.settings.planStart) + '" max="' + ymd() + '" aria-label="From date"><input type="date" name="to" value="' + addDays(ymd(), -1) + '" max="' + ymd() + '" aria-label="To date"><input type="number" name="h" min="1" max="24" value="' + S.settings.goal + '" class="hin" aria-label="Hours per day"><button class="btn primary sm" type="submit">Apply</button></form></div>' +
     '<div class="set"><div class="k">Daily hours goal</div><div class="d">Hour blocks shown on Today. Any logged hour keeps the streak; reaching the goal makes it a goal day.</div><div class="ctl"><div class="stepper"><button data-act="goal:-1" aria-label="Lower goal">−</button><b class="num">' + S.settings.goal + ' h</b><button data-act="goal:1" aria-label="Raise goal">+</button></div></div></div>' +
     "</div></section>";
   html += '<section class="block"><div class="block-head"><h2>How it works</h2></div><div class="panel about">' +
@@ -915,7 +938,9 @@ document.addEventListener("click", (e) => {
   const [act, arg] = btn.dataset.act.split(/:(.*)/s);
   switch (act) {
     case "nav": UI.view = arg; window.scrollTo({ top: 0 }); render(); break;
-    case "hours": setHours(Number(arg)); break;
+    case "hours": { const [d, n] = arg.split(":"); setHours(Number(n), d); break; }
+    case "day": UI.editDay = UI.editDay === arg ? null : arg; render(); break;
+    case "closeday": UI.editDay = null; render(); break;
     case "toggle": { const c = COMP[arg], pos = planPos(); const cur = UI.collapsed[arg] !== undefined ? UI.collapsed[arg] : !(pos.week >= c.startWeek && pos.week <= c.endWeek); UI.collapsed[arg] = !cur; render(); break; }
     case "checkin": checkIn(arg); break;
     case "done": markDone(arg); break;
@@ -946,6 +971,7 @@ document.addEventListener("click", (e) => {
 document.addEventListener("submit", (e) => {
   const f = e.target;
   if (f.id === "todoForm") { e.preventDefault(); addTodo(f.elements.text.value, f.elements.due.value); return; }
+  if (f.id === "backfillForm") { e.preventDefault(); backfill(f.elements.from.value, f.elements.to.value, f.elements.h.value); return; }
   const af = f.closest(".add-form"); if (af && af.dataset.comp) { e.preventDefault(); addCustom(af.dataset.comp, af.elements.name.value); }
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "todoText") { e.preventDefault(); const f = document.getElementById("todoForm"); if (f) addTodo(f.elements.text.value, f.elements.due.value); } });
