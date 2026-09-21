@@ -1,0 +1,14 @@
+{
+  "name": "Grade B Streak",
+  "short_name": "Grade B",
+  "description": "Streak-based daily planner for the RBI Grade B exam on EduTap's 9-month plan.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0F1522",
+  "theme_color": "#24408E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
